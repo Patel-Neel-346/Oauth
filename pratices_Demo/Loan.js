@@ -1598,8 +1598,11 @@ GET /api/loans/LN1234567890
 6. Get all loans with filters:
 GET /api/loans?status=ACTIVE&loanType=PERSONAL&page=1&limit=10
 
+
 7. Get amortization schedule:
 GET /api/loans/LN1234567890/amortization
+
+
 
 8. Get analytics (MANAGER/ADMIN):
 GET /api/loans/analytics/overview
