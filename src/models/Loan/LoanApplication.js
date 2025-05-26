@@ -1,10 +1,12 @@
 import mongoose from "mongoose";
+import { v4 as uuidv4 } from "uuid";
 
 const LoanApplicationSchema = new mongoose.Schema({
   applicationId: {
     type: String,
     unique: true,
     required: true,
+    default: uuidv4,
   },
   loanOfferId: {
     type: mongoose.Schema.Types.ObjectId,

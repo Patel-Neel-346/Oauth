@@ -2,8 +2,85 @@ import LoanApplication from "../../models/Loan/LoanApplication.js";
 import LoanOffer from "../../models/Loan/LoanOffer.js";
 import BorrowerProfile from "../../models/BorrowerProfile.js";
 import User from "../../models/User.js";
+import Role from "../../models/Role.js";
 
 class LoanApplicationController {
+  static async checkEligibility(borrowerProfile, criteria) {
+    const checks = [];
+    let allPassed = true;
+
+    // Credit score check
+    if (criteria.minCreditScore) {
+      const creditPassed =
+        borrowerProfile.creditScore >= criteria.minCreditScore;
+      checks.push({
+        name: "Credit Score",
+        required: criteria.minCreditScore,
+        actual: borrowerProfile.creditScore,
+        passed: creditPassed,
+      });
+      if (!creditPassed) allPassed = false;
+    }
+
+    // Debt to income ratio check
+    if (criteria.maxDebtToIncomeRatio) {
+      const debtRatioPassed =
+        borrowerProfile.debtToIncomeRatio <= criteria.maxDebtToIncomeRatio;
+      checks.push({
+        name: "Debt to Income Ratio",
+        required: `≤ ${criteria.maxDebtToIncomeRatio}`,
+        actual: borrowerProfile.debtToIncomeRatio,
+        passed: debtRatioPassed,
+      });
+      if (!debtRatioPassed) allPassed = false;
+    }
+
+    // Monthly income check
+    if (criteria.minMonthlyIncome) {
+      const incomePassed =
+        borrowerProfile.monthlyIncome >= criteria.minMonthlyIncome;
+      checks.push({
+        name: "Monthly Income",
+        required: criteria.minMonthlyIncome,
+        actual: borrowerProfile.monthlyIncome,
+        passed: incomePassed,
+      });
+      if (!incomePassed) allPassed = false;
+    }
+
+    // Employment status check
+    if (criteria.employmentStatus && criteria.employmentStatus.length > 0) {
+      const employmentPassed = criteria.employmentStatus.includes(
+        borrowerProfile.employmentStatus
+      );
+      checks.push({
+        name: "Employment Status",
+        required: criteria.employmentStatus.join(", "),
+        actual: borrowerProfile.employmentStatus,
+        passed: employmentPassed,
+      });
+      if (!employmentPassed) allPassed = false;
+    }
+
+    // Employment duration check
+    if (criteria.minEmploymentDuration) {
+      const durationPassed =
+        borrowerProfile.employmentDuration >= criteria.minEmploymentDuration;
+      checks.push({
+        name: "Employment Duration (months)",
+        required: criteria.minEmploymentDuration,
+        actual: borrowerProfile.employmentDuration,
+        passed: durationPassed,
+      });
+      if (!durationPassed) allPassed = false;
+    }
+
+    return {
+      passed: allPassed,
+      criteria: checks,
+      checkedAt: new Date(),
+    };
+  }
   // Apply for loan (BORROWER only)
   static async applyForLoan(req, res) {
     try {
@@ -11,7 +88,7 @@ class LoanApplicationController {
       const { requestedAmount, selectedTerm, purpose, purposeDescription } =
         req.body;
 
-      // Get loan offer
+      // Step 1: Get the loan offer
       const loanOffer = await LoanOffer.findById(offerId);
       if (!loanOffer || loanOffer.status !== "active") {
         return res.status(404).json({
@@ -20,7 +97,7 @@ class LoanApplicationController {
         });
       }
 
-      // Check if borrower already applied for this offer
+      // Step 2: Check if borrower already applied
       const existingApplication = await LoanApplication.findOne({
         loanOfferId: offerId,
         borrowerId: req.user.id,
@@ -34,10 +111,31 @@ class LoanApplicationController {
         });
       }
 
-      // Get borrower profile
-      const borrower = await User.findById(req.user.id);
+      // Step 3: Get borrower
+      const user = await User.findById(req.user);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+      console.log(user);
+      // Step 4: Get borrower role that includes this user
+      const borrowerRole = await Role.findOne({
+        name: "borrower",
+        users: user._id,
+      });
+      //   console.log(borrowerProfile);
+      if (!borrowerRole) {
+        return res.status(400).json({
+          success: false,
+          message: "Borrower role not assigned to user",
+        });
+      }
+
+      // Step 5: Get BorrowerProfile using roleId
       const borrowerProfile = await BorrowerProfile.findOne({
-        roleId: borrower.roleId,
+        roleId: borrowerRole._id,
       });
 
       if (!borrowerProfile) {
@@ -47,7 +145,7 @@ class LoanApplicationController {
         });
       }
 
-      // Validate request amount
+      // Step 6: Validate requested amount
       if (
         requestedAmount < loanOffer.minAmount ||
         requestedAmount > loanOffer.maxAmount
@@ -58,7 +156,7 @@ class LoanApplicationController {
         });
       }
 
-      // Check available funds
+      // Step 7: Check available funds
       if (requestedAmount > loanOffer.availableFunds) {
         return res.status(400).json({
           success: false,
@@ -66,7 +164,7 @@ class LoanApplicationController {
         });
       }
 
-      // Validate term
+      // Step 8: Validate term
       if (!loanOffer.termOptions.includes(selectedTerm)) {
         return res.status(400).json({
           success: false,
@@ -74,15 +172,18 @@ class LoanApplicationController {
         });
       }
 
-      // Check eligibility
-      const eligibilityResult = await this.checkEligibility(
-        borrowerProfile,
-        loanOffer.eligibilityCriteria
-      );
+      // Step 9: Check eligibility
+      const eligibilityResult =
+        await LoanApplicationController.checkEligibility(
+          borrowerProfile,
+          loanOffer.eligibilityCriteria
+        );
+      console.log(eligibilityResult);
 
+      // Step 10: Create application
       const application = new LoanApplication({
         loanOfferId: offerId,
-        borrowerId: req.user.id,
+        borrowerId: user._id,
         lenderId: loanOffer.lenderId,
         requestedAmount,
         selectedTerm,
@@ -105,17 +206,19 @@ class LoanApplicationController {
       });
 
       await application.save();
+      console.log(application);
 
-      // Update loan offer
+      // Step 11: Update loan offer
       loanOffer.applications.push(application._id);
       loanOffer.totalApplications += 1;
       await loanOffer.save();
 
+      // Step 12: Respond
       res.status(201).json({
         success: true,
         message: "Loan application submitted successfully",
         data: {
-          applicationId: application.applicationId,
+          applicationId: application._id,
           status: application.status,
           eligibilityPassed: eligibilityResult.passed,
           calculatedEMI: application.calculatedEMI,
@@ -123,6 +226,7 @@ class LoanApplicationController {
         },
       });
     } catch (error) {
+      console.log(error);
       res.status(500).json({
         success: false,
         message: "Error submitting loan application",
