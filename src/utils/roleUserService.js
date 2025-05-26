@@ -161,38 +161,6 @@ class RoleUserService {
       throw error;
     }
   }
-
-  // static async removeRoleFromUser(userId, roleName) {
-  //   try {
-  //     // Find the role
-  //     const role = await Role.findOne({ name: roleName });
-  //     if (!role) {
-  //       throw new ApiError(404, "Role not found");
-  //     }
-
-  //     // Check if user has this role
-  //     if (!role.users.includes(userId)) {
-  //       throw new ApiError(400, `User does not have the ${roleName} role`);
-  //     }
-
-  //     // Remove user from role
-  //     role.users = role.users.filter(
-  //       (id) => id.toString() !== userId.toString()
-  //     );
-  //     await role.save();
-
-  //     // Delete role-specific profile
-  //     if (roleName === ROLE_TYPES.BORROWER) {
-  //       await BorrowerProfile.deleteOne({ roleId: role._id });
-  //     } else if (roleName === ROLE_TYPES.LENDER) {
-  //       await LenderProfile.deleteOne({ roleId: role._id });
-  //     }
-
-  //     return true;
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // }
 }
 
 export default RoleUserService;
