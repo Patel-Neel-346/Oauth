@@ -1,11 +1,20 @@
-// src/middleware/roleMiddleware.js - Enhanced version with account-specific permissions
+// src/middleware/roleMiddleware.js - Enhanced Role & Permission System
 import { ApiError } from "../helpers/ApiError.js";
 import Role from "../models/Role.js";
 import Account from "../models/Account.js";
 import { ROLE_TYPES } from "../models/Role.js";
 import RoleUserService from "../utils/roleUserService.js";
+import {
+  PERMISSIONS,
+  ROLE_PERMISSIONS,
+  getUserPermissions,
+  roleHasPermission,
+  BANKING_RULES,
+} from "../config/permissions.js";
 
-// Basic role checking middleware (existing functionality - enhanced)
+/**
+ * Basic role checking middleware
+ */
 export const hasRole = (allowedRoles) => {
   return async (req, res, next) => {
     try {
@@ -15,16 +24,14 @@ export const hasRole = (allowedRoles) => {
         return next(new ApiError(401, "User not authenticated"));
       }
 
-      const userRoles = await Role.find({ users: userId });
+      const userProfile = await RoleUserService.getUserCompleteProfile(userId);
 
-      if (!userRoles || userRoles.length === 0) {
+      if (!userProfile.roles || userProfile.roles.length === 0) {
         return next(new ApiError(403, "No roles assigned to user"));
       }
 
-      const roleNames = userRoles.map((role) => role.name);
-
       // Check if user has any of the allowed roles
-      const hasRequiredRole = roleNames.some((role) =>
+      const hasRequiredRole = userProfile.roles.some((role) =>
         allowedRoles.includes(role)
       );
 
@@ -39,8 +46,11 @@ export const hasRole = (allowedRoles) => {
         );
       }
 
-      // Attach user roles to request for use in controllers
-      req.userRoles = roleNames;
+      // Attach user profile to request
+      req.userProfile = userProfile;
+      req.userRoles = userProfile.roles;
+      req.userPermissions = getUserPermissions(userProfile.roles);
+
       next();
     } catch (error) {
       console.error("Role middleware error:", error);
@@ -49,7 +59,58 @@ export const hasRole = (allowedRoles) => {
   };
 };
 
-// Account ownership verification middleware
+/**
+ * Permission-based access control middleware
+ */
+export const hasPermission = (requiredPermissions) => {
+  const permissions = Array.isArray(requiredPermissions)
+    ? requiredPermissions
+    : [requiredPermissions];
+
+  return async (req, res, next) => {
+    try {
+      // Ensure user is authenticated and has roles
+      if (!req.userPermissions) {
+        const userId = req.user;
+        if (!userId) {
+          return next(new ApiError(401, "User not authenticated"));
+        }
+
+        const userProfile = await RoleUserService.getUserCompleteProfile(
+          userId
+        );
+        req.userProfile = userProfile;
+        req.userRoles = userProfile.roles;
+        req.userPermissions = getUserPermissions(userProfile.roles);
+      }
+
+      // Check if user has all required permissions
+      const hasAllPermissions = permissions.every((permission) =>
+        req.userPermissions.includes(permission)
+      );
+
+      if (!hasAllPermissions) {
+        return next(
+          new ApiError(
+            403,
+            `Access Denied: Missing required permissions: ${permissions.join(
+              ", "
+            )}`
+          )
+        );
+      }
+
+      next();
+    } catch (error) {
+      console.error("Permission middleware error:", error);
+      return next(new ApiError(500, "Error checking permissions"));
+    }
+  };
+};
+
+/**
+ * Account ownership verification middleware
+ */
 export const verifyAccountOwnership = async (req, res, next) => {
   try {
     const userId = req.user;
@@ -59,15 +120,19 @@ export const verifyAccountOwnership = async (req, res, next) => {
       return next(new ApiError(400, "Account ID is required"));
     }
 
-    // Get user roles
-    const userProfile = await RoleUserService.getUserCompleteProfile(userId);
+    // Get user permissions if not already loaded
+    if (!req.userPermissions) {
+      const userProfile = await RoleUserService.getUserCompleteProfile(userId);
+      req.userProfile = userProfile;
+      req.userRoles = userProfile.roles;
+      req.userPermissions = getUserPermissions(userProfile.roles);
+    }
 
     // Admins and managers can access any account
     if (
-      userProfile.roles.includes(ROLE_TYPES.ADMIN) ||
-      userProfile.roles.includes(ROLE_TYPES.MANAGER)
+      req.userPermissions.includes(PERMISSIONS.ACCOUNT_READ_ALL) ||
+      req.userPermissions.includes(PERMISSIONS.ACCOUNT_UPDATE_ALL)
     ) {
-      req.userRoles = userProfile.roles;
       return next();
     }
 
@@ -83,12 +148,7 @@ export const verifyAccountOwnership = async (req, res, next) => {
       );
     }
 
-    req.userRoles = userProfile.roles;
-    req.accountOwnership = {
-      isOwner: true,
-      account: account,
-    };
-
+    req.targetAccount = account;
     next();
   } catch (error) {
     console.error("Account ownership verification error:", error);
@@ -96,48 +156,170 @@ export const verifyAccountOwnership = async (req, res, next) => {
   }
 };
 
-// Account type access control middleware
-export const canAccessAccountType = (allowedAccountTypes) => {
-  return async (req, res, next) => {
-    try {
-      const userId = req.user;
-      const accountType = req.body.accountType || req.params.accountType;
+/**
+ * Banking transaction limits middleware
+ */
+export const checkTransactionLimits = async (req, res, next) => {
+  try {
+    const userId = req.user;
+    const { amount, type } = req.body;
 
-      if (!accountType) {
-        return next(new ApiError(400, "Account type is required"));
-      }
+    if (!amount || amount <= 0) {
+      return next(new ApiError(400, "Valid transaction amount is required"));
+    }
 
-      // Get user profile with roles
+    // Get user roles if not loaded
+    if (!req.userRoles) {
       const userProfile = await RoleUserService.getUserCompleteProfile(userId);
+      req.userRoles = userProfile.roles;
+    }
 
-      // Admins can access all account types
-      if (userProfile.roles.includes(ROLE_TYPES.ADMIN)) {
-        req.userRoles = userProfile.roles;
-        return next();
-      }
+    // Admins bypass limits
+    if (req.userRoles.includes(ROLE_TYPES.ADMIN)) {
+      return next();
+    }
 
-      // Check if the account type is in allowed types
-      if (!allowedAccountTypes.includes(accountType)) {
+    // Get highest role for limits (LENDER > BORROWER > USER)
+    let userRole = ROLE_TYPES.USER;
+    if (req.userRoles.includes(ROLE_TYPES.LENDER)) {
+      userRole = ROLE_TYPES.LENDER;
+    } else if (req.userRoles.includes(ROLE_TYPES.BORROWER)) {
+      userRole = ROLE_TYPES.BORROWER;
+    }
+
+    const limits = BANKING_RULES.TRANSACTION_LIMITS[userRole];
+
+    // Check single transaction limit
+    if (amount > limits.single) {
+      return next(
+        new ApiError(
+          400,
+          `Transaction amount exceeds single transaction limit of ${limits.single}`
+        )
+      );
+    }
+
+    // TODO: Check daily and monthly limits against actual transaction history
+    // This would require querying transaction history
+
+    next();
+  } catch (error) {
+    console.error("Transaction limits check error:", error);
+    return next(new ApiError(500, "Error checking transaction limits"));
+  }
+};
+
+/**
+ * Loan eligibility middleware
+ */
+export const checkLoanEligibility = async (req, res, next) => {
+  try {
+    const userId = req.user;
+    const { amount, purpose } = req.body;
+
+    // Get user profile with borrower details
+    const userProfile = await RoleUserService.getUserCompleteProfile(userId);
+
+    if (
+      !userProfile.roles.includes(ROLE_TYPES.BORROWER) &&
+      !userProfile.roles.includes(ROLE_TYPES.LENDER)
+    ) {
+      return next(
+        new ApiError(403, "Only borrowers and lenders can apply for loans")
+      );
+    }
+
+    const userRole = userProfile.roles.includes(ROLE_TYPES.LENDER)
+      ? ROLE_TYPES.LENDER
+      : ROLE_TYPES.BORROWER;
+
+    const loanLimits = BANKING_RULES.LOAN_LIMITS[userRole];
+
+    // Check loan amount limit
+    if (amount > loanLimits.maximum) {
+      return next(
+        new ApiError(
+          400,
+          `Loan amount exceeds maximum limit of ${loanLimits.maximum} for ${userRole}`
+        )
+      );
+    }
+
+    // Check borrower profile requirements
+    if (userRole === ROLE_TYPES.BORROWER && userProfile.borrowerProfile) {
+      const profile = userProfile.borrowerProfile;
+
+      // Credit score check
+      if (profile.creditScore < loanLimits.minimumCreditScore) {
         return next(
           new ApiError(
-            403,
-            `Account type '${accountType}' is not allowed for this operation`
+            400,
+            `Credit score ${profile.creditScore} is below minimum requirement of ${loanLimits.minimumCreditScore}`
           )
         );
       }
 
-      // Role-specific account type validation
-      const canAccess = await validateAccountTypeByRole(
-        accountType,
-        userProfile.roles,
-        userProfile
-      );
-
-      if (!canAccess.allowed) {
-        return next(new ApiError(403, canAccess.message));
+      // Debt-to-income ratio check
+      if (profile.debtToIncomeRatio > loanLimits.maxDebtToIncomeRatio) {
+        return next(
+          new ApiError(
+            400,
+            `Debt-to-income ratio ${profile.debtToIncomeRatio} exceeds maximum of ${loanLimits.maxDebtToIncomeRatio}`
+          )
+        );
       }
 
-      req.userRoles = userProfile.roles;
+      // Verification status check
+      if (profile.verificationStatus !== "verified") {
+        return next(
+          new ApiError(
+            400,
+            "Borrower profile must be verified to apply for loans"
+          )
+        );
+      }
+    }
+
+    req.userProfile = userProfile;
+    next();
+  } catch (error) {
+    console.error("Loan eligibility check error:", error);
+    return next(new ApiError(500, "Error checking loan eligibility"));
+  }
+};
+
+/**
+ * Account type access control middleware
+ */
+export const canAccessAccountType = (accountType) => {
+  return async (req, res, next) => {
+    try {
+      const userId = req.user;
+
+      // Get user roles if not loaded
+      if (!req.userRoles) {
+        const userProfile = await RoleUserService.getUserCompleteProfile(
+          userId
+        );
+        req.userRoles = userProfile.roles;
+      }
+
+      // Check if any of user's roles can access this account type
+      const canAccess = req.userRoles.some((role) => {
+        const allowedTypes =
+          BANKING_RULES.ACCOUNT_TYPE_RESTRICTIONS[role] || [];
+        return allowedTypes.includes(accountType);
+      });
+
+      if (!canAccess) {
+        return next(
+          new ApiError(
+            403,
+            `Access denied: Your role(s) cannot access ${accountType} accounts`
+          )
+        );
+      }
+
       next();
     } catch (error) {
       console.error("Account type access control error:", error);
@@ -146,270 +328,66 @@ export const canAccessAccountType = (allowedAccountTypes) => {
   };
 };
 
-// Middleware to check if user can perform account operations
-export const canPerformAccountOperation = (operation) => {
+/**
+ * Profile verification middleware
+ */
+export const requireVerifiedProfile = (profileType) => {
   return async (req, res, next) => {
     try {
       const userId = req.user;
-      const { accountId } = req.params;
-
-      // Get user profile
       const userProfile = await RoleUserService.getUserCompleteProfile(userId);
 
-      // Get account if accountId is provided
-      let account = null;
-      if (accountId) {
-        account = await Account.findById(accountId);
-        if (!account) {
-          return next(new ApiError(404, "Account not found"));
+      if (profileType === "borrower" && userProfile.borrowerProfile) {
+        if (userProfile.borrowerProfile.verificationStatus !== "verified") {
+          return next(
+            new ApiError(
+              400,
+              "Borrower profile must be verified for this operation"
+            )
+          );
         }
       }
 
-      // Check operation permissions based on role and operation type
-      const canPerform = await checkOperationPermission(
-        operation,
-        userProfile.roles,
-        account,
-        userId
-      );
-
-      if (!canPerform.allowed) {
-        return next(new ApiError(403, canPerform.message));
+      if (profileType === "lender" && userProfile.lenderProfile) {
+        if (userProfile.lenderProfile.verificationStatus !== "verified") {
+          return next(
+            new ApiError(
+              400,
+              "Lender profile must be verified for this operation"
+            )
+          );
+        }
       }
 
-      req.userRoles = userProfile.roles;
-      req.targetAccount = account;
+      req.userProfile = userProfile;
       next();
     } catch (error) {
-      console.error("Account operation permission error:", error);
-      return next(new ApiError(500, "Error checking operation permissions"));
+      console.error("Profile verification error:", error);
+      return next(new ApiError(500, "Error checking profile verification"));
     }
   };
 };
 
-// Enhanced middleware for account status updates
-export const canUpdateAccountStatus = async (req, res, next) => {
-  try {
-    const userId = req.user;
-    const { accountId } = req.params;
-    const { status } = req.body;
-
-    if (!status) {
-      return next(new ApiError(400, "Status is required"));
-    }
-
-    const userProfile = await RoleUserService.getUserCompleteProfile(userId);
-    const account = await Account.findById(accountId);
-
-    if (!account) {
-      return next(new ApiError(404, "Account not found"));
-    }
-
-    // Status update permissions
-    const statusPermissions = {
-      [ROLE_TYPES.ADMIN]: ["active", "inactive", "suspended", "closed"],
-      [ROLE_TYPES.MANAGER]: ["active", "inactive", "suspended"],
-      [ROLE_TYPES.USER]: ["inactive"], // Users can only deactivate their own accounts
-      [ROLE_TYPES.BORROWER]: ["inactive"],
-      [ROLE_TYPES.LENDER]: ["inactive"],
-    };
-
-    // Check if user has permission to set this status
-    let canSetStatus = false;
-    let allowedStatuses = [];
-
-    userProfile.roles.forEach((role) => {
-      if (statusPermissions[role]) {
-        allowedStatuses = [
-          ...new Set([...allowedStatuses, ...statusPermissions[role]]),
-        ];
-        if (statusPermissions[role].includes(status)) {
-          canSetStatus = true;
-        }
-      }
-    });
-
-    if (!canSetStatus) {
-      return next(
-        new ApiError(
-          403,
-          `You don't have permission to set status to '${status}'. Allowed statuses: ${allowedStatuses.join(
-            ", "
-          )}`
-        )
-      );
-    }
-
-    // Additional check: non-admin users can only update their own accounts
-    if (
-      !userProfile.roles.includes(ROLE_TYPES.ADMIN) &&
-      !userProfile.roles.includes(ROLE_TYPES.MANAGER) &&
-      account.userId.toString() !== userId.toString()
-    ) {
-      return next(
-        new ApiError(403, "You can only update the status of your own accounts")
-      );
-    }
-
-    req.userRoles = userProfile.roles;
-    next();
-  } catch (error) {
-    console.error("Account status update permission error:", error);
-    return next(new ApiError(500, "Error checking status update permissions"));
-  }
-};
-
-// HELPER FUNCTIONS
-
-// Validate account type access based on user roles
-async function validateAccountTypeByRole(accountType, userRoles, userProfile) {
-  const accountTypePermissions = {
-    savings: [
-      ROLE_TYPES.USER,
-      ROLE_TYPES.BORROWER,
-      ROLE_TYPES.LENDER,
-      ROLE_TYPES.ADMIN,
-    ],
-    checking: [
-      ROLE_TYPES.USER,
-      ROLE_TYPES.BORROWER,
-      ROLE_TYPES.LENDER,
-      ROLE_TYPES.ADMIN,
-    ],
-    loan: [ROLE_TYPES.BORROWER, ROLE_TYPES.ADMIN],
-    credit: [ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER, ROLE_TYPES.ADMIN],
-    investment: [ROLE_TYPES.LENDER, ROLE_TYPES.ADMIN],
-  };
-
-  const allowedRoles = accountTypePermissions[accountType] || [];
-
-  // Check if user has any allowed role for this account type
-  const hasAllowedRole = userRoles.some((role) => allowedRoles.includes(role));
-
-  if (!hasAllowedRole) {
-    return {
-      allowed: false,
-      message: `Account type '${accountType}' requires one of these roles: ${allowedRoles.join(
-        ", "
-      )}`,
-    };
-  }
-
-  // Additional validation for specific account types
-  if (accountType === "loan" && userRoles.includes(ROLE_TYPES.BORROWER)) {
-    if (
-      userProfile.borrowerProfile &&
-      userProfile.borrowerProfile.verificationStatus !== "verified"
-    ) {
-      return {
-        allowed: false,
-        message: "Borrower profile must be verified to access loan accounts",
-      };
-    }
-  }
-
-  if (accountType === "investment" && userRoles.includes(ROLE_TYPES.LENDER)) {
-    if (
-      userProfile.lenderProfile &&
-      userProfile.lenderProfile.verificationStatus !== "verified"
-    ) {
-      return {
-        allowed: false,
-        message:
-          "Lender profile must be verified to access investment accounts",
-      };
-    }
-  }
-
-  return { allowed: true };
-}
-
-// Check specific operation permissions
-async function checkOperationPermission(operation, userRoles, account, userId) {
-  const operationPermissions = {
-    create: {
-      [ROLE_TYPES.USER]: true,
-      [ROLE_TYPES.BORROWER]: true,
-      [ROLE_TYPES.LENDER]: true,
-      [ROLE_TYPES.ADMIN]: true,
-    },
-    read: {
-      [ROLE_TYPES.USER]: "own",
-      [ROLE_TYPES.BORROWER]: "own",
-      [ROLE_TYPES.LENDER]: "own",
-      [ROLE_TYPES.MANAGER]: "all",
-      [ROLE_TYPES.ADMIN]: "all",
-    },
-    update: {
-      [ROLE_TYPES.USER]: "own_limited",
-      [ROLE_TYPES.BORROWER]: "own_limited",
-      [ROLE_TYPES.LENDER]: "own_limited",
-      [ROLE_TYPES.MANAGER]: "all_limited",
-      [ROLE_TYPES.ADMIN]: "all",
-    },
-    delete: {
-      [ROLE_TYPES.USER]: "own",
-      [ROLE_TYPES.BORROWER]: "own",
-      [ROLE_TYPES.LENDER]: "own",
-      [ROLE_TYPES.ADMIN]: "all",
-    },
-  };
-
-  if (!operationPermissions[operation]) {
-    return { allowed: false, message: "Invalid operation" };
-  }
-
-  // Check if user has any role that allows this operation
-  let highestPermission = null;
-  userRoles.forEach((role) => {
-    const permission = operationPermissions[operation][role];
-    if (permission) {
-      if (permission === "all" || permission === true) {
-        highestPermission = "all";
-      } else if (
-        !highestPermission ||
-        (highestPermission === "own_limited" && permission === "own") ||
-        (highestPermission === "own" && permission === "all_limited")
-      ) {
-        highestPermission = permission;
-      }
-    }
-  });
-
-  if (!highestPermission) {
-    return {
-      allowed: false,
-      message: `You don't have permission to ${operation} accounts`,
-    };
-  }
-
-  // If operation requires account ownership check
-  if (
-    account &&
-    (highestPermission === "own" || highestPermission === "own_limited") &&
-    account.userId.toString() !== userId.toString()
-  ) {
-    return {
-      allowed: false,
-      message: `You can only ${operation} your own accounts`,
-    };
-  }
-
-  return { allowed: true, permission: highestPermission };
-}
-
-// Export additional utility functions for controllers
-export const getRoleBasedAccountFilter = async (userId, userRoles) => {
+/**
+ * Utility function to get role-based account filter for queries
+ */
+export const getRoleBasedAccountFilter = (userId, userRoles) => {
+  // Admins and managers can see all accounts
   if (
     userRoles.includes(ROLE_TYPES.ADMIN) ||
     userRoles.includes(ROLE_TYPES.MANAGER)
   ) {
     return {}; // No filter - can see all accounts
   }
+
   return { userId }; // Filter to only user's accounts
 };
 
+/**
+ * Utility function to get role-based field projection
+ */
 export const getRoleBasedFieldFilter = (userRoles) => {
+  // Admins and managers see all fields
   if (
     userRoles.includes(ROLE_TYPES.ADMIN) ||
     userRoles.includes(ROLE_TYPES.MANAGER)
