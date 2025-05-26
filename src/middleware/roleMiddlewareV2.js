@@ -12,9 +12,6 @@ import {
   BANKING_RULES,
 } from "../config/permissions.js";
 
-/**
- * Basic role checking middleware
- */
 export const hasRole = (allowedRoles) => {
   return async (req, res, next) => {
     try {
@@ -59,9 +56,6 @@ export const hasRole = (allowedRoles) => {
   };
 };
 
-/**
- * Permission-based access control middleware
- */
 export const hasPermission = (requiredPermissions) => {
   const permissions = Array.isArray(requiredPermissions)
     ? requiredPermissions
@@ -108,9 +102,6 @@ export const hasPermission = (requiredPermissions) => {
   };
 };
 
-/**
- * Account ownership verification middleware
- */
 export const verifyAccountOwnership = async (req, res, next) => {
   try {
     const userId = req.user;
@@ -156,62 +147,6 @@ export const verifyAccountOwnership = async (req, res, next) => {
   }
 };
 
-/**
- * Banking transaction limits middleware
- */
-export const checkTransactionLimits = async (req, res, next) => {
-  try {
-    const userId = req.user;
-    const { amount, type } = req.body;
-
-    if (!amount || amount <= 0) {
-      return next(new ApiError(400, "Valid transaction amount is required"));
-    }
-
-    // Get user roles if not loaded
-    if (!req.userRoles) {
-      const userProfile = await RoleUserService.getUserCompleteProfile(userId);
-      req.userRoles = userProfile.roles;
-    }
-
-    // Admins bypass limits
-    if (req.userRoles.includes(ROLE_TYPES.ADMIN)) {
-      return next();
-    }
-
-    // Get highest role for limits (LENDER > BORROWER > USER)
-    let userRole = ROLE_TYPES.USER;
-    if (req.userRoles.includes(ROLE_TYPES.LENDER)) {
-      userRole = ROLE_TYPES.LENDER;
-    } else if (req.userRoles.includes(ROLE_TYPES.BORROWER)) {
-      userRole = ROLE_TYPES.BORROWER;
-    }
-
-    const limits = BANKING_RULES.TRANSACTION_LIMITS[userRole];
-
-    // Check single transaction limit
-    if (amount > limits.single) {
-      return next(
-        new ApiError(
-          400,
-          `Transaction amount exceeds single transaction limit of ${limits.single}`
-        )
-      );
-    }
-
-    // TODO: Check daily and monthly limits against actual transaction history
-    // This would require querying transaction history
-
-    next();
-  } catch (error) {
-    console.error("Transaction limits check error:", error);
-    return next(new ApiError(500, "Error checking transaction limits"));
-  }
-};
-
-/**
- * Loan eligibility middleware
- */
 export const checkLoanEligibility = async (req, res, next) => {
   try {
     const userId = req.user;
@@ -288,9 +223,6 @@ export const checkLoanEligibility = async (req, res, next) => {
   }
 };
 
-/**
- * Account type access control middleware
- */
 export const canAccessAccountType = (accountType) => {
   return async (req, res, next) => {
     try {
@@ -325,86 +257,5 @@ export const canAccessAccountType = (accountType) => {
       console.error("Account type access control error:", error);
       return next(new ApiError(500, "Error checking account type access"));
     }
-  };
-};
-
-/**
- * Profile verification middleware
- */
-export const requireVerifiedProfile = (profileType) => {
-  return async (req, res, next) => {
-    try {
-      const userId = req.user;
-      const userProfile = await RoleUserService.getUserCompleteProfile(userId);
-
-      if (profileType === "borrower" && userProfile.borrowerProfile) {
-        if (userProfile.borrowerProfile.verificationStatus !== "verified") {
-          return next(
-            new ApiError(
-              400,
-              "Borrower profile must be verified for this operation"
-            )
-          );
-        }
-      }
-
-      if (profileType === "lender" && userProfile.lenderProfile) {
-        if (userProfile.lenderProfile.verificationStatus !== "verified") {
-          return next(
-            new ApiError(
-              400,
-              "Lender profile must be verified for this operation"
-            )
-          );
-        }
-      }
-
-      req.userProfile = userProfile;
-      next();
-    } catch (error) {
-      console.error("Profile verification error:", error);
-      return next(new ApiError(500, "Error checking profile verification"));
-    }
-  };
-};
-
-/**
- * Utility function to get role-based account filter for queries
- */
-export const getRoleBasedAccountFilter = (userId, userRoles) => {
-  // Admins and managers can see all accounts
-  if (
-    userRoles.includes(ROLE_TYPES.ADMIN) ||
-    userRoles.includes(ROLE_TYPES.MANAGER)
-  ) {
-    return {}; // No filter - can see all accounts
-  }
-
-  return { userId }; // Filter to only user's accounts
-};
-
-/**
- * Utility function to get role-based field projection
- */
-export const getRoleBasedFieldFilter = (userRoles) => {
-  // Admins and managers see all fields
-  if (
-    userRoles.includes(ROLE_TYPES.ADMIN) ||
-    userRoles.includes(ROLE_TYPES.MANAGER)
-  ) {
-    return {}; // No field restrictions
-  }
-
-  // Regular users see limited fields
-  return {
-    _id: 1,
-    accountNumber: 1,
-    accountType: 1,
-    balance: 1,
-    currency: 1,
-    status: 1,
-    interestRate: 1,
-    createdAt: 1,
-    updatedAt: 1,
   };
 };
