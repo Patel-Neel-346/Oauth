@@ -12,6 +12,7 @@ import DataRouter from "./routes/dataRoutes.js";
 import ClientRouter from "./routes/clientRoutes.js";
 import AccountRoute from "./routes/AccountRoutes.js"; // Import Account Routes
 import TransactionRouter from "./routes/TransactionRoutes.js";
+import router from "./routes/LoanRoute.js";
 
 const PORT = ConfigENV.PORT || 7000;
 const app = express();
@@ -62,6 +63,8 @@ app.use("/data", DataRouter);
 app.use("/clients", ClientRouter);
 app.use("/accounts", AccountRoute); // Add Account Routes
 app.use("/transaction", TransactionRouter);
+app.use("/loan", router);
+
 // Enhanced error handler to better display validation errors
 app.use((err, req, res, next) => {
   console.error(err.stack);
