@@ -9,6 +9,13 @@ import {
   LenderReviewApplicationController,
   AdminFinalApprovalController,
   GetApplicationsController,
+  disburseLoan,
+  makeLoanPayment,
+  getLoanDetails,
+  getUserLoans,
+  getLoanPaymentSchedule,
+  getOverdueLoans,
+  getLoanAnalytics,
 } from "../controller/LoanControllers.js";
 import { Authenticated } from "../middleware/authMiddleware.js";
 
@@ -52,5 +59,28 @@ router.put(
 
 // Get applications based on user role
 router.get("/applications", Authenticated, GetApplicationsController);
+
+// ========== P2P LOAN MANAGEMENT ROUTES ==========
+
+// Disburse loan after approval (ADMIN only)
+router.post("/disburse", Authenticated, disburseLoan);
+
+// Make loan payment (BORROWER only)
+router.post("/loans/:loanId/payment", Authenticated, makeLoanPayment);
+
+// Get loan details (Borrower/Lender/Admin)
+router.get("/loans/:loanId", Authenticated, getLoanDetails);
+
+// Get user's loans with filters (Borrower/Lender)
+router.get("/my-loans", Authenticated, getUserLoans);
+
+// Get loan payment schedule (Borrower/Lender/Admin)
+router.get("/loans/:loanId/schedule", Authenticated, getLoanPaymentSchedule);
+
+// Get overdue loans (ADMIN only)
+router.get("/overdue", Authenticated, getOverdueLoans);
+
+// Get loan analytics dashboard (All roles with role-based filtering)
+router.get("/analytics", Authenticated, getLoanAnalytics);
 
 export default router;

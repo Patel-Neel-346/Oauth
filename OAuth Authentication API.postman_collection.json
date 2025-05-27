@@ -1560,6 +1560,167 @@
           }
         }
       ]
+    },
+	 {
+      "name": "P2P Loan Management",
+      "item": [
+        {
+          "name": "Disburse Loan (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"applicationId\": \"APP123456789\",\n  \"borrowerAccountId\": \"ACC987654321\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/disburse",
+              "host": ["{{baseUrl}}"],
+              "path": ["disburse"]
+            }
+          }
+        },
+        {
+          "name": "Make Loan Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentAmount\": 2500,\n  \"accountId\": \"ACC987654321\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/loans/{{loanId}}/payment",
+              "host": ["{{baseUrl}}"],
+              "path": ["loans", "{{loanId}}", "payment"]
+            }
+          }
+        },
+        {
+          "name": "Get Loan Details",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/loans/{{loanId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["loans", "{{loanId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get My Loans",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/my-loans?type=borrowed&status=active&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["my-loans"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "borrowed",
+                  "description": "borrowed | lent | all"
+                },
+                {
+                  "key": "status",
+                  "value": "active",
+                  "description": "active | completed | defaulted | closed"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get My Lent Loans",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/my-loans?type=lent&status=active&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["my-loans"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "lent"
+                },
+                {
+                  "key": "status",
+                  "value": "active"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Loan Payment Schedule",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/loans/{{loanId}}/schedule",
+              "host": ["{{baseUrl}}"],
+              "path": ["loans", "{{loanId}}", "schedule"]
+            }
+          }
+        },
+        {
+          "name": "Get Overdue Loans (Admin)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/overdue?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["overdue"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Loan Analytics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/analytics",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics"]
+            }
+          }
+        }
+      ]
     }
 	]
 }
