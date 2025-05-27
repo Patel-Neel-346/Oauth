@@ -1,9 +1,10 @@
-import { ApiError } from "../helpers/ApiError";
-import BorrowerProfile from "../models/BorrowerProfile";
-import LoanApplication from "../models/Loan/LoanApplication";
-import LoanOffer from "../models/Loan/LoanOffer";
-import Role from "../models/Role";
-import User from "../models/User";
+import mongoose from "mongoose";
+import { ApiError } from "../helpers/ApiError.js";
+import BorrowerProfile from "../models/BorrowerProfile.js";
+import LoanApplication from "../models/Loan/LoanApplication.js";
+import LoanOffer from "../models/Loan/LoanOffer.js";
+import Role from "../models/Role.js";
+import User from "../models/User.js";
 
 class LoanApplicationServices {
   //to check eligibility for Borrowers
@@ -58,35 +59,35 @@ class LoanApplicationServices {
 
       if (!incomePassed) allPassed = false;
     }
-    if (criteria.employmentStatus?.length) {
-      const employmentPassed = criteria.employmentStatus.includes(
-        borrowerProfile.employmentStatus
-      );
-      checks.push({
-        name: "Employment Status",
-        required: criteria.employmentStatus.join(", "),
-        actual: borrowerProfile.employmentStatus,
-        passed: employmentPassed,
-      });
-      if (!employmentPassed) allPassed = false;
-    }
+    // if (criteria.employmentStatus?.length) {
+    //   const employmentPassed = criteria.employmentStatus.includes(
+    //     borrowerProfile.employmentStatus
+    //   );
+    //   checks.push({
+    //     name: "Employment Status",
+    //     required: criteria.employmentStatus.join(", "),
+    //     actual: borrowerProfile.employmentStatus,
+    //     passed: employmentPassed,
+    //   });
+    //   if (!employmentPassed) allPassed = false;
+    // }
 
-    if (criteria.minEmploymentDuration) {
-      const durationPassed =
-        borrowerProfile.employmentDuration >= criteria.minEmploymentDuration;
-      checks.push({
-        name: "Employment Duration (months)",
-        required: criteria.minEmploymentDuration,
-        actual: borrowerProfile.employmentDuration,
-        passed: durationPassed,
-      });
-      if (!durationPassed) allPassed = false;
-    }
+    // if (criteria.minEmploymentDuration) {
+    //   const durationPassed =
+    //     borrowerProfile.employmentDuration >= criteria.minEmploymentDuration;
+    //   checks.push({
+    //     name: "Employment Duration (months)",
+    //     required: criteria.minEmploymentDuration,
+    //     actual: borrowerProfile.employmentDuration,
+    //     passed: durationPassed,
+    //   });
+    //   if (!durationPassed) allPassed = false;
+    // }
 
     return { passed: allPassed, criteria: checks, checkedAt: new Date() };
   }
 
-  static async applyForLoan(req) {
+  static async applyForLoan(req, next) {
     const { offerId } = req.params;
     const { requestedAmount, selectedTerm, purpose, purposeDescription } =
       req.body;
@@ -112,7 +113,8 @@ class LoanApplicationServices {
       );
 
     //3. get Borrower's Id
-    const user = await User.findbyId(req.user);
+    // console.log(req.user);
+    const user = await User.findById(req.user);
     const borrowerRole = await Role.findOne({
       name: "borrower",
       users: user._id,
@@ -197,16 +199,21 @@ class LoanApplicationServices {
     };
   }
 
-  static async lenderReviewApplication(req) {
+  static async lenderReviewApplication(req, next) {
     const { applicationId } = req.params;
     const { decision, comments } = req.body;
+    const lenderId = typeof req.user === "string" ? req.user : req.user._id;
 
-    //get Borrowers Application Details
+    console.log("Received Application ID:", applicationId);
+    console.log("Authenticated Lender ID:", lenderId);
+
     const application = await LoanApplication.findOne({
       applicationId,
-      lenderId: req.user.id,
+      lenderId,
       status: "pending",
     });
+
+    console.log("Fetched Application:", application);
 
     if (!application)
       return next(new ApiError(400, "Application Not Found -_-"));
@@ -223,7 +230,7 @@ class LoanApplicationServices {
     return { applicationId, status: application.status };
   }
 
-  static async adminFinalApproval(req) {
+  static async adminFinalApproval(req, next) {
     const { applicationId } = req.params;
     const { decision, comments } = req.body;
 
@@ -262,14 +269,14 @@ class LoanApplicationServices {
     return { applicationId, status: application.status };
   }
 
-  static async getApplications(req) {
+  static async getApplications(req, next) {
     const { status, page = 1, limit = 10 } = req.query;
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user);
     const query = {};
 
-    if (user.roles.includes("BORROWER")) {
+    if (user.roles.includes("borrower")) {
       query.borrowerId = req.user.id;
-    } else if (user.roles.includes("LENDER")) {
+    } else if (user.roles.includes("lender")) {
       query.lenderId = req.user.id;
     }
 

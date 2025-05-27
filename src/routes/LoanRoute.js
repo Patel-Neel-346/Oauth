@@ -1,132 +1,56 @@
 import express from "express";
-import LoanOfferController from "../controller/LoanController/loanOfferController.js";
-import LoanApplicationController from "../controller/LoanController/loanApplicationcontroller.js";
-import P2PLoanController from "../controller/LoanController/P2PController.js";
 import {
-  Authenticated,
-  //   authenticateToken,
-  //   authorizeRoles,
-} from "../middleware/authMiddleware.js";
+  CreateLoanOffer,
+  GetAllLoanOffers,
+  GetLoanOfferDetail,
+  UpdateLoanOffers,
+  GetLenderOffers,
+  ApplyForLoanController,
+  LenderReviewApplicationController,
+  AdminFinalApprovalController,
+  GetApplicationsController,
+} from "../controller/LoanControllers.js";
+import { Authenticated } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Loan Offer Routes
-router.post(
-  "/offers",
-  Authenticated,
-  //   authorizeRoles(["LENDER"]),
-  LoanOfferController.createLoanOffer
-);
+// ========== LOAN OFFER ROUTES ==========
 
-router.get("/offers", Authenticated, LoanOfferController.getAllLoanOffers);
+// Create a new loan offer (Lender only)
+router.post("/offers", Authenticated, CreateLoanOffer);
 
-router.get(
-  "/offers/:offerId",
-  //   authenticateToken,
-  Authenticated,
-  LoanOfferController.getLoanOfferDetails
-);
+// Get all active loan offers (Public/Authenticated users)
+router.get("/offers", Authenticated, GetAllLoanOffers);
 
-router.put(
-  "/offers/:offerId",
-  //   authenticateToken,
-  Authenticated,
+// Get specific loan offer details
+router.get("/offers/:offerId", Authenticated, GetLoanOfferDetail);
 
-  //   authorizeRoles(["LENDER"]),
-  LoanOfferController.updateLoanOffer
-);
+// Update loan offer (Lender only - own offers)
+router.put("/offers/:offerId", Authenticated, UpdateLoanOffers);
 
-router.get(
-  "/my-offers",
-  //   authenticateToken,
-  //   authorizeRoles(["LENDER"]),
-  Authenticated,
+// Get lender's own loan offers
+router.get("/my-offers", Authenticated, GetLenderOffers);
 
-  LoanOfferController.getLenderOffers
-);
+// ========== LOAN APPLICATION ROUTES ==========
 
-// Loan Application Routes
-router.post(
-  "/offers/:offerId/apply",
-  //   authenticateToken,
-  //   authorizeRoles(["BORROWER"]),
-  Authenticated,
+// Apply for a specific loan offer (Borrower only)
+router.post("/offers/:offerId/apply", Authenticated, ApplyForLoanController);
 
-  LoanApplicationController.applyForLoan
-);
-
+// Lender review application (Lender only)
 router.put(
   "/applications/:applicationId/lender-review",
-  //   authenticateToken,
-  //   authorizeRoles(["LENDER"]),
   Authenticated,
-
-  LoanApplicationController.lenderReviewApplication
+  LenderReviewApplicationController
 );
 
+// Admin final approval (Admin only)
 router.put(
   "/applications/:applicationId/admin-approval",
-  //   authenticateToken,
-  //   authorizeRoles(["ADMIN"]),
   Authenticated,
-
-  LoanApplicationController.adminFinalApproval
+  AdminFinalApprovalController
 );
 
-router.get(
-  "/applications",
-  //   authenticateToken,
-  Authenticated,
-
-  LoanApplicationController.getApplications
-);
-
-// P2P Loan Routes
-router.post(
-  "/disburse",
-  //   authenticateToken,
-  //   authorizeRoles(["ADMIN"]),
-  Authenticated,
-
-  P2PLoanController.disburseLoan
-);
-
-router.post(
-  "/loans/:loanId/payment",
-  //   authenticateToken,
-  //   authorizeRoles(["BORROWER"]),
-  Authenticated,
-
-  P2PLoanController.makeLoanPayment
-);
-
-router.get(
-  "/loans/:loanId",
-  //   authenticateToken,
-  Authenticated,
-
-  P2PLoanController.getLoanDetails
-);
-
-router.get("/my-loans", Authenticated, P2PLoanController.getUserLoans);
-
-router.get(
-  "/loans/:loanId/schedule",
-  //   authenticateToken,
-  Authenticated,
-
-  P2PLoanController.getLoanPaymentSchedule
-);
-
-router.get(
-  "/overdue",
-  //   authenticateToken,
-  //   authorizeRoles(["ADMIN"]),
-  Authenticated,
-
-  P2PLoanController.getOverdueLoans
-);
-
-router.get("/analytics", Authenticated, P2PLoanController.getLoanAnalytics);
+// Get applications based on user role
+router.get("/applications", Authenticated, GetApplicationsController);
 
 export default router;

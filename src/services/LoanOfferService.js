@@ -1,6 +1,6 @@
-import User from "../models/User";
+import User from "../models/User.js";
 import { ApiError } from "../helpers/ApiError.js";
-import Role from "../models/Role";
+import Role from "../models/Role.js";
 import LenderProfile from "../models/LenderProfile.js";
 import LoanOffer from "../models/Loan/LoanOffer.js";
 class LoanOfferService {
@@ -68,9 +68,9 @@ class LoanOfferService {
 
     if (minAmount) query.minAmount = { $gte: minAmount };
     if (maxAmount) query.maxAmount = { $lte: maxAmount };
-    if (maxInterestRate) query.interestRate = { lte: maxInterestRate };
+    if (maxInterestRate) query.interestRate = { $lte: maxInterestRate };
     if (purpose) query.loanPurpose = { $in: [purpose] };
-    if (term) query.termOptions = { $in: [parserInt(term)] };
+    if (term) query.termOptions = { $in: [parseInt(term)] };
 
     const offers = await LoanOffer.find(query)
       .populate("lenderId", "firstName lastName email profileImage")
@@ -121,7 +121,7 @@ class LoanOfferService {
     let query = { lenderId: userId };
 
     if (status) query.status = status;
-
+    console.log(query);
     const offer = await LoanOffer.find(query)
       .populate("applications")
       .sort({ createdAt: -1 })

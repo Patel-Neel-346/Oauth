@@ -34,7 +34,7 @@ const LoanOfferSchema = new mongoose.Schema({
   termOptions: [
     {
       type: Number, // in months
-      min: 1,
+      min: 0,
       max: 360,
     },
   ],

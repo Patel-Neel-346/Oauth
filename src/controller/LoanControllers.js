@@ -92,9 +92,10 @@ export const UpdateLoanOffers = asyncHandler(async (req, res, next) => {
 export const GetLenderOffers = asyncHandler(async (req, res, next) => {
   try {
     const result = await LoanOfferService.getLenderOfferSerivces(
-      req.user.id,
-      req.query
+      req.user,
+      req.params
     );
+    // console.log(req.user);
     if (!result)
       return next(
         new ApiError(401, "Failed To Get Lender's Loan Offer Try Again -_-")
@@ -119,7 +120,7 @@ export const GetLenderOffers = asyncHandler(async (req, res, next) => {
 
 //borrow's only
 export const ApplyForLoanController = asyncHandler(async (req, res, next) => {
-  const application = LoanApplicationServices.applyForLoan(req);
+  const application = LoanApplicationServices.applyForLoan(req, next);
 
   if (!application)
     return next(
@@ -143,7 +144,7 @@ export const ApplyForLoanController = asyncHandler(async (req, res, next) => {
 //lender only
 export const LenderReviewApplicationController = asyncHandler(
   async (req, res, next) => {
-    const result = LoanApplicationServices.lenderReviewApplication(req);
+    const result = LoanApplicationServices.lenderReviewApplication(req, next);
 
     if (!result)
       return next(
@@ -164,7 +165,7 @@ export const LenderReviewApplicationController = asyncHandler(
 //admin only
 export const AdminFinalApprovalController = asyncHandler(
   async (req, res, next) => {
-    const result = LoanApplicationServices.adminFinalApproval(req);
+    const result = LoanApplicationServices.adminFinalApproval(req, next);
     if (!result)
       return next(
         new ApiError(404, "There has been Error In Review Application for loan")
@@ -184,7 +185,7 @@ export const AdminFinalApprovalController = asyncHandler(
 //get Application based on Role's
 export const GetApplicationsController = asyncHandler(
   async (req, res, next) => {
-    const result = LoanApplicationServices.getApplications(req);
+    const result = LoanApplicationServices.getApplications(req, next);
 
     return res
       .status(200)
