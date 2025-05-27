@@ -3,6 +3,7 @@ import { ApiError } from "../helpers/ApiError.js";
 import { ApiRes } from "../helpers/ApiRespones.js";
 import LoanOfferService from "../services/LoanOfferService.js";
 import LoanApplicationServices from "../services/LoanApplicationService.js";
+import P2PLoanService from "../services/P2PLoanServiceV2.js";
 // import LoanApplicationService from "./LoanController/loanApplicationcontroller.js";
 
 // Here All Loan offer Controller Here
@@ -198,3 +199,226 @@ export const GetApplicationsController = asyncHandler(
       );
   }
 );
+
+// Disburse loan after approval (ADMIN only)
+export const disburseLoan = asyncHandler(async (req, res) => {
+  const { applicationId, borrowerAccountId } = req.body;
+
+  try {
+    const result = await P2PLoanService.disburseLoan(
+      applicationId,
+      borrowerAccountId
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Loan disbursed successfully",
+      data: result,
+    });
+  } catch (error) {
+    if (error.message === "Approved application not found") {
+      return res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    if (error.message === "Valid accounts not found") {
+      return res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    if (error.message === "Insufficient balance in lender account") {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Error disbursing loan",
+      error: error.message,
+    });
+  }
+});
+
+// Make loan payment (BORROWER only)
+export const makeLoanPayment = asyncHandler(async (req, res) => {
+  const { loanId } = req.params;
+  const { paymentAmount, accountId } = req.body;
+
+  try {
+    const result = await P2PLoanService.makeLoanPayment(
+      loanId,
+      paymentAmount,
+      accountId,
+      req.user.id
+    );
+
+    res.json({
+      success: true,
+      message: "Payment made successfully",
+      data: result,
+    });
+  } catch (error) {
+    if (error.message === "Active loan not found") {
+      return res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    if (
+      error.message === "Insufficient balance or invalid account" ||
+      error.message === "Lender account not found"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Error processing payment",
+      error: error.message,
+    });
+  }
+});
+
+// Get loan details
+export const getLoanDetails = asyncHandler(async (req, res) => {
+  const { loanId } = req.params;
+
+  try {
+    const loan = await P2PLoanService.getLoanDetails(loanId, req.user.id);
+
+    res.json({
+      success: true,
+      data: loan,
+    });
+  } catch (error) {
+    if (error.message === "Loan not found") {
+      return res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    if (error.message === "Access denied") {
+      return res.status(403).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Error fetching loan details",
+      error: error.message,
+    });
+  }
+});
+
+// Get user's loans (borrower/lender)
+export const getUserLoans = asyncHandler(async (req, res) => {
+  const { type, status, page = 1, limit = 10 } = req.query;
+
+  try {
+    const result = await P2PLoanService.getUserLoans(req.user.id, {
+      type,
+      status,
+      page,
+      limit,
+    });
+
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching loans",
+      error: error.message,
+    });
+  }
+});
+
+// Get loan payment schedule
+export const getLoanPaymentSchedule = asyncHandler(async (req, res) => {
+  const { loanId } = req.params;
+
+  try {
+    const result = await P2PLoanService.getLoanPaymentSchedule(
+      loanId,
+      req.user.id
+    );
+
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    if (error.message === "Loan not found") {
+      return res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    if (error.message === "Access denied") {
+      return res.status(403).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Error generating payment schedule",
+      error: error.message,
+    });
+  }
+});
+
+// Get overdue loans (ADMIN)
+export const getOverdueLoans = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
+
+  try {
+    const result = await P2PLoanService.getOverdueLoans({ page, limit });
+
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching overdue loans",
+      error: error.message,
+    });
+  }
+});
+
+// Loan analytics dashboard
+export const getLoanAnalytics = asyncHandler(async (req, res) => {
+  try {
+    const result = await P2PLoanService.getLoanAnalytics(req.user.id);
+
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching loan analytics",
+      error: error.message,
+    });
+  }
+});
