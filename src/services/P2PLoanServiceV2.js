@@ -1,8 +1,8 @@
-import P2PLoan from "../../models/Loan/P2PLoan.js";
-import LoanApplication from "../../models/Loan/LoanApplication.js";
-import User from "../../models/User.js";
-import Account from "../../models/Account.js";
-import Transaction from "../../models/Transaction.js";
+import P2PLoan from "../models/Loan/P2PLoan.js";
+import LoanApplication from "../models/Loan/LoanApplication.js";
+import User from "../models/User.js";
+import Account from "../models/Account.js";
+import Transaction from "../models/Transaction.js";
 
 class P2PLoanService {
   // Disburse loan after approval
