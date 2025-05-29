@@ -4,7 +4,7 @@ const P2PLoanSchema = new mongoose.Schema({
   loanId: {
     type: String,
     unique: true,
-    required: true,
+    // required: true,
   },
   applicationId: {
     type: String,
@@ -47,7 +47,7 @@ const P2PLoanSchema = new mongoose.Schema({
   },
   remainingBalance: {
     type: Number,
-    required: true,
+    // required: true,
   },
   purpose: {
     type: String,
@@ -64,7 +64,7 @@ const P2PLoanSchema = new mongoose.Schema({
   },
   nextPaymentDate: {
     type: Date,
-    required: true,
+    // required: true,
   },
   lastPaymentDate: Date,
   paymentsCompleted: {
@@ -73,7 +73,7 @@ const P2PLoanSchema = new mongoose.Schema({
   },
   totalPayments: {
     type: Number,
-    required: true,
+    // required: true,
   },
   paymentHistory: [
     {

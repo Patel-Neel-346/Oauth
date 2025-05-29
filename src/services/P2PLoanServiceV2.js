@@ -21,15 +21,18 @@ class P2PLoanService {
 
     // Verify accounts
     const borrowerAccount = await Account.findOne({
-      accountId: borrowerAccountId,
+      accountNumber: borrowerAccountId,
       userId: application.borrowerId._id,
-      status: "ACTIVE",
+      status: "active",
     });
+    console.log(borrowerAccount);
 
     const lenderAccount = await Account.findOne({
       userId: application.lenderId._id,
-      status: "ACTIVE",
+      status: "active",
     });
+
+    console.log(lenderAccount);
 
     if (!borrowerAccount || !lenderAccount) {
       throw new Error("Valid accounts not found");
@@ -41,6 +44,30 @@ class P2PLoanService {
     }
 
     // Create P2P loan record
+    // const p2pLoan = new P2PLoan({
+    //   applicationId: application.applicationId,
+    //   loanOfferId: application.loanOfferId._id,
+    //   borrowerId: application.borrowerId._id,
+    //   lenderId: application.lenderId._id,
+    //   principalAmount: application.requestedAmount,
+    //   interestRate: application.interestRate,
+    //   termInMonths: application.selectedTerm,
+    //   monthlyEMI: application.calculatedEMI,
+    //   totalPayableAmount: application.totalPayableAmount,
+    //   purpose: application.purpose,
+    // });
+
+    // await p2pLoan.save();
+
+    const disbursementDate = new Date();
+    const loanId = `LN${Date.now()}${Math.random()
+      .toString(36)
+      .substr(2, 4)
+      .toUpperCase()}`;
+    const nextPaymentDate = new Date(
+      disbursementDate.getTime() + 30 * 24 * 60 * 60 * 1000
+    );
+
     const p2pLoan = new P2PLoan({
       applicationId: application.applicationId,
       loanOfferId: application.loanOfferId._id,
@@ -52,6 +79,11 @@ class P2PLoanService {
       monthlyEMI: application.calculatedEMI,
       totalPayableAmount: application.totalPayableAmount,
       purpose: application.purpose,
+      loanId,
+      disbursementDate,
+      nextPaymentDate,
+      remainingBalance: application.requestedAmount,
+      totalPayments: application.selectedTerm,
     });
 
     await p2pLoan.save();
@@ -67,7 +99,7 @@ class P2PLoanService {
     const lenderTransaction = new Transaction({
       userId: application.lenderId._id,
       accountId: lenderAccount.accountId,
-      type: "DEBIT",
+      type: "transfer",
       amount: application.requestedAmount,
       description: `Loan disbursed to ${application.borrowerId.firstName} ${application.borrowerId.lastName}`,
       category: "LOAN_DISBURSEMENT",
@@ -78,7 +110,7 @@ class P2PLoanService {
     const borrowerTransaction = new Transaction({
       userId: application.borrowerId._id,
       accountId: borrowerAccount.accountId,
-      type: "CREDIT",
+      type: "transfer",
       amount: application.requestedAmount,
       description: `Loan received from ${application.lenderId.firstName} ${application.lenderId.lastName}`,
       category: "LOAN_RECEIVED",
@@ -99,22 +131,25 @@ class P2PLoanService {
 
   // Make loan payment
   static async makeLoanPayment(loanId, paymentAmount, accountId, userId) {
+    console.log(userId);
     const loan = await P2PLoan.findOne({
       loanId,
       borrowerId: userId,
       status: "active",
     }).populate("lenderId");
 
+    console.log(loan);
     if (!loan) {
       throw new Error("Active loan not found");
     }
 
     // Verify borrower account
     const borrowerAccount = await Account.findOne({
-      accountId,
+      accountNumber: accountId,
       userId: userId,
-      status: "ACTIVE",
+      status: "active",
     });
+    console.log(borrowerAccount);
 
     if (!borrowerAccount || borrowerAccount.balance < paymentAmount) {
       throw new Error("Insufficient balance or invalid account");
@@ -123,7 +158,7 @@ class P2PLoanService {
     // Get lender account
     const lenderAccount = await Account.findOne({
       userId: loan.lenderId._id,
-      status: "ACTIVE",
+      status: "active",
     });
 
     if (!lenderAccount) {
@@ -179,7 +214,7 @@ class P2PLoanService {
     const borrowerTransaction = new Transaction({
       userId: userId,
       accountId: borrowerAccount.accountId,
-      type: "DEBIT",
+      type: "transfer",
       amount: paymentAmount,
       description: `Loan payment for ${loanId}`,
       category: "LOAN_PAYMENT",
@@ -190,7 +225,7 @@ class P2PLoanService {
     const lenderTransaction = new Transaction({
       userId: loan.lenderId._id,
       accountId: lenderAccount.accountId,
-      type: "CREDIT",
+      type: "transfer",
       amount: paymentAmount,
       description: `Loan payment received for ${loanId}`,
       category: "LOAN_PAYMENT_RECEIVED",
@@ -214,18 +249,19 @@ class P2PLoanService {
     const loan = await P2PLoan.findOne({ loanId })
       .populate("borrowerId", "firstName lastName email")
       .populate("lenderId", "firstName lastName email");
-
+    // console.log(loan);
     if (!loan) {
       throw new Error("Loan not found");
     }
 
     // Check if user has permission to view this loan
     const user = await User.findById(userId);
+    console.log(user);
     const canView =
       loan.borrowerId._id.equals(userId) ||
       loan.lenderId._id.equals(userId) ||
-      user.roles.includes("ADMIN");
-
+      user.roles.includes("admin");
+    console.log(canView);
     if (!canView) {
       throw new Error("Access denied");
     }
@@ -344,6 +380,8 @@ class P2PLoanService {
       .limit(limit * 1)
       .skip((page - 1) * limit);
 
+    console.log(overdueLoans);
+
     // Calculate overdue days for each loan
     const loansWithOverdueDays = overdueLoans.map((loan) => {
       const overdueDays = Math.floor(
@@ -374,14 +412,19 @@ class P2PLoanService {
   // Get loan analytics dashboard
   static async getLoanAnalytics(userId) {
     const user = await User.findById(userId);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
     let matchQuery = {};
 
     // Role-based filtering
-    if (user.roles.includes("LENDER") && !user.roles.includes("ADMIN")) {
+    if (user.roles?.includes("lender") && !user.roles.includes("admin")) {
       matchQuery.lenderId = userId;
     } else if (
-      user.roles.includes("BORROWER") &&
-      !user.roles.includes("ADMIN")
+      user.roles?.includes("borrower") &&
+      !user.roles.includes("admin")
     ) {
       matchQuery.borrowerId = userId;
     }

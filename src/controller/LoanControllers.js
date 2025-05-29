@@ -249,13 +249,13 @@ export const disburseLoan = asyncHandler(async (req, res) => {
 export const makeLoanPayment = asyncHandler(async (req, res) => {
   const { loanId } = req.params;
   const { paymentAmount, accountId } = req.body;
-
+  console.log("USERID:", req.user);
   try {
     const result = await P2PLoanService.makeLoanPayment(
       loanId,
       paymentAmount,
       accountId,
-      req.user.id
+      req.user
     );
 
     res.json({
@@ -294,7 +294,7 @@ export const getLoanDetails = asyncHandler(async (req, res) => {
   const { loanId } = req.params;
 
   try {
-    const loan = await P2PLoanService.getLoanDetails(loanId, req.user.id);
+    const loan = await P2PLoanService.getLoanDetails(loanId, req.user);
 
     res.json({
       success: true,
@@ -328,7 +328,7 @@ export const getUserLoans = asyncHandler(async (req, res) => {
   const { type, status, page = 1, limit = 10 } = req.query;
 
   try {
-    const result = await P2PLoanService.getUserLoans(req.user.id, {
+    const result = await P2PLoanService.getUserLoans(req.user, {
       type,
       status,
       page,
@@ -355,7 +355,7 @@ export const getLoanPaymentSchedule = asyncHandler(async (req, res) => {
   try {
     const result = await P2PLoanService.getLoanPaymentSchedule(
       loanId,
-      req.user.id
+      req.user
     );
 
     res.json({
@@ -408,7 +408,7 @@ export const getOverdueLoans = asyncHandler(async (req, res) => {
 // Loan analytics dashboard
 export const getLoanAnalytics = asyncHandler(async (req, res) => {
   try {
-    const result = await P2PLoanService.getLoanAnalytics(req.user.id);
+    const result = await P2PLoanService.getLoanAnalytics(req.user);
 
     res.json({
       success: true,
