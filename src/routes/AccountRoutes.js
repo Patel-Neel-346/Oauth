@@ -7,114 +7,23 @@ import {
   CloseUserAccount,
 } from "../controller/AccountController.js";
 import { Authenticated } from "../middleware/authMiddleware.js";
-import {
-  hasRole,
-  checkAccountOwnership,
-  accountRoleChecks,
-  ROLE_TYPES,
-} from "../middleware/roleMiddleware.js";
-import { body, param, query, validationResult } from "express-validator";
-import { ApiError } from "../helpers/ApiError.js";
+import { hasRole, ROLE_TYPES } from "../middleware/roleMiddleware.js";
 
 const AccountRoute = express.Router();
-
-// Validation middleware
-const handleValidationErrors = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const formattedErrors = {};
-    errors.array().forEach((error) => {
-      formattedErrors[error.path] = error.msg;
-    });
-    return next(new ApiError(400, "Validation failed", errors.array()));
-  }
-  next();
-};
-
-// Validation rules for account creation
-const createAccountValidation = [
-  body("accountType")
-    .isIn(["savings", "checking", "loan", "credit", "investment"])
-    .withMessage(
-      "Invalid account type. Must be one of: savings, checking, loan, credit, investment"
-    ),
-  body("initialDeposit")
-    .optional()
-    .isNumeric()
-    .withMessage("Initial deposit must be a number")
-    .isFloat({ min: 0 })
-    .withMessage("Initial deposit cannot be negative"),
-  body("currency")
-    .optional()
-    .isLength({ min: 1, max: 5 })
-    .withMessage("Currency must be 1-5 characters"),
-];
-
-// Validation rules for account updates
-const updateAccountValidation = [
-  param("accountId").isMongoId().withMessage("Invalid account ID format"),
-  body("status")
-    .optional()
-    .isIn(["active", "inactive", "suspended"])
-    .withMessage("Status must be one of: active, inactive, suspended"),
-  body("interestRate")
-    .optional()
-    .isNumeric()
-    .withMessage("Interest rate must be a number")
-    .isFloat({ min: 0, max: 100 })
-    .withMessage("Interest rate must be between 0 and 100"),
-];
-
-// Validation rules for account closure
-const closeAccountValidation = [
-  param("accountId").isMongoId().withMessage("Invalid account ID format"),
-  body("transferAccountId")
-    .optional()
-    .isMongoId()
-    .withMessage("Invalid transfer account ID format"),
-  body("reason")
-    .optional()
-    .isLength({ min: 1, max: 500 })
-    .withMessage("Reason must be between 1 and 500 characters"),
-];
-
-// Query validation for getting accounts
-const getAccountsValidation = [
-  query("status")
-    .optional()
-    .isIn(["active", "inactive", "suspended", "closed"])
-    .withMessage("Invalid status filter"),
-  query("accountType")
-    .optional()
-    .isIn(["savings", "checking", "loan", "credit", "investment"])
-    .withMessage("Invalid account type filter"),
-  query("page")
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage("Page must be a positive integer"),
-  query("limit")
-    .optional()
-    .isInt({ min: 1, max: 100 })
-    .withMessage("Limit must be between 1 and 100"),
-];
 
 // Create account - All authenticated users can create accounts
 AccountRoute.post(
   "/",
   Authenticated,
-  accountRoleChecks.canCreateAccount,
-  createAccountValidation,
-  handleValidationErrors,
+  hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
   CreateAccount
 );
 
-// Get all accounts - Admins and managers can see all, others see only their own
+// Get all accounts - Admins and managers can see all
 AccountRoute.get(
   "/",
   Authenticated,
-  accountRoleChecks.canViewAccount,
-  getAccountsValidation,
-  handleValidationErrors,
+  hasRole([ROLE_TYPES.ADMIN, ROLE_TYPES.MANAGER]),
   getAllAccount
 );
 
@@ -122,10 +31,13 @@ AccountRoute.get(
 AccountRoute.get(
   "/:accountId",
   Authenticated,
-  accountRoleChecks.canViewAccount,
-  param("accountId").isMongoId().withMessage("Invalid account ID format"),
-  handleValidationErrors,
-  checkAccountOwnership(),
+  hasRole([
+    ROLE_TYPES.USER,
+    ROLE_TYPES.BORROWER,
+    ROLE_TYPES.LENDER,
+    ROLE_TYPES.ADMIN,
+    ROLE_TYPES.MANAGER,
+  ]),
   getUserAccount
 );
 
@@ -133,10 +45,12 @@ AccountRoute.get(
 AccountRoute.put(
   "/:accountId",
   Authenticated,
-  accountRoleChecks.canUpdateAccount,
-  updateAccountValidation,
-  handleValidationErrors,
-  checkAccountOwnership(),
+  hasRole([
+    ROLE_TYPES.USER,
+    ROLE_TYPES.BORROWER,
+    ROLE_TYPES.LENDER,
+    ROLE_TYPES.ADMIN,
+  ]),
   UpdateUserAccount
 );
 
@@ -144,10 +58,12 @@ AccountRoute.put(
 AccountRoute.post(
   "/:accountId/close",
   Authenticated,
-  accountRoleChecks.canCloseAccount,
-  closeAccountValidation,
-  handleValidationErrors,
-  checkAccountOwnership(),
+  hasRole([
+    ROLE_TYPES.USER,
+    ROLE_TYPES.BORROWER,
+    ROLE_TYPES.LENDER,
+    ROLE_TYPES.ADMIN,
+  ]),
   CloseUserAccount
 );
 
@@ -163,7 +79,6 @@ AccountRoute.get(
   ]),
   async (req, res, next) => {
     try {
-      const userId = req.user;
       const userRoles = req.userRoles; // Set by role middleware
 
       const accountTypes = [
