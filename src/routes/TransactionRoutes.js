@@ -1,20 +1,12 @@
-// src/routes/transactionRoutes.js
+// src/routes/TransactionRoutes.js - Updated with Role-Based Access Control
 import express from "express";
-// import {
-//   depositFunds,
-//   withdrawFunds,
-//   transferFunds,
-//   transferByAccountNumber,
-//   getAccountBalance,
-//   getTransactionHistory,
-//   processInterestPayment,
-//   getTransactionDetails,
-//   getAllUserTransactions,
-//   cancelTransaction,
-//   reverseTransaction,
-//   getTransactionStatistics,
-// } from "../controller/TransactionController.js";
 import { Authenticated } from "../middleware/authMiddleware.js";
+import {
+  hasRole,
+  checkAccountOwnership,
+  transactionRoleChecks,
+  ROLE_TYPES,
+} from "../middleware/roleMiddleware.js";
 import { body, param, query, validationResult } from "express-validator";
 import { ApiError } from "../helpers/ApiError.js";
 import {
@@ -85,36 +77,150 @@ const transferValidation = [
     .withMessage("Description must be between 1 and 500 characters"),
 ];
 
-// Validation rules for transfer by account number
-const transferByAccountNumberValidation = [
-  body("fromAccountId")
-    .isMongoId()
-    .withMessage("Invalid from account ID format"),
-  body("toAccountNumber")
-    .isLength({ min: 8, max: 20 })
-    .withMessage("Account number must be between 8 and 20 characters"),
-  body("amount")
-    .isNumeric()
-    .withMessage("Amount must be a number")
-    .isFloat({ min: 0.01 })
-    .withMessage("Amount must be greater than 0"),
-  body("description")
-    .optional()
-    .isLength({ min: 1, max: 500 })
-    .withMessage("Description must be between 1 and 500 characters"),
-];
+// Custom middleware to check account ownership for transactions
+const checkTransactionAccountOwnership = async (req, res, next) => {
+  try {
+    const userId = req.user;
+    const { accountId, fromAccountId } = req.body;
 
-// Query validation for transaction history
-const transactionHistoryValidation = [
-  param("accountId").isMongoId().withMessage("Invalid account ID format"),
-  query("type")
-    .optional()
-    .isIn(["deposit", "withdrawal", "transfer", "payment", "fee", "interest"])
-    .withMessage("Invalid transaction type"),
-  query("status")
-    .optional()
-    .isIn(["pending", "completed", "failed", "cancelled"])
-    .withMessage("Invalid transaction status"),
+    // Check which account ID to validate
+    const accountToCheck = accountId || fromAccountId;
+
+    if (!accountToCheck) {
+      return next(new ApiError(400, "Account ID is required"));
+    }
+
+    // Import Account model
+    const Account = (await import("../models/Account.js")).default;
+    const account = await Account.findById(accountToCheck);
+
+    if (!account) {
+      return next(new ApiError(404, "Account not found"));
+    }
+
+    // Check if user has admin/manager role to bypass ownership check
+    const userRoles = req.userRoles || [];
+    const canAccessAnyAccount = userRoles.some((role) =>
+      [ROLE_TYPES.ADMIN, ROLE_TYPES.MANAGER].includes(role)
+    );
+
+    if (
+      !canAccessAnyAccount &&
+      account.userId.toString() !== userId.toString()
+    ) {
+      return next(
+        new ApiError(
+          403,
+          "Access Denied: You can only access your own accounts"
+        )
+      );
+    }
+
+    next();
+  } catch (error) {
+    console.error("Transaction account ownership check error:", error);
+    return next(new ApiError(500, "Error checking account ownership"));
+  }
+};
+
+// Deposit funds - Users, borrowers, and lenders can deposit to their own accounts
+TransactionRouter.post(
+  "/deposit",
+  Authenticated,
+  transactionRoleChecks.canPerformTransaction,
+  depositValidation,
+  handleValidationErrors,
+  checkTransactionAccountOwnership,
+  DepositFunds
+);
+
+// Withdraw funds - Users, borrowers, and lenders can withdraw from their own accounts
+TransactionRouter.post(
+  "/withdraw",
+  Authenticated,
+  transactionRoleChecks.canPerformTransaction,
+  withdrawalValidation,
+  handleValidationErrors,
+  checkTransactionAccountOwnership,
+  WithDrawFunds
+);
+
+// Transfer funds - Users, borrowers, and lenders can transfer from their own accounts
+TransactionRouter.post(
+  "/transfer",
+  Authenticated,
+  transactionRoleChecks.canPerformTransaction,
+  transferValidation,
+  handleValidationErrors,
+  checkTransactionAccountOwnership,
+  TransferFunds
+);
+
+// Get transaction history - Users can view their own history, admins can view any
+TransactionRouter.get(
+  "/getTransactionHistroy/:accountNumber",
+  Authenticated,
+  transactionRoleChecks.canViewOwnTransactions,
+  param("accountNumber")
+    .isLength({ min: 8, max: 20 })
+    .withMessage("Invalid account number format"),
+  handleValidationErrors,
+  // Custom middleware to check account number ownership
+  async (req, res, next) => {
+    try {
+      const userId = req.user;
+      const { accountNumber } = req.params;
+      const userRoles = req.userRoles || [];
+
+      // Admin and managers can view any account's history
+      const canViewAnyAccount = userRoles.some((role) =>
+        [ROLE_TYPES.ADMIN, ROLE_TYPES.MANAGER].includes(role)
+      );
+
+      if (canViewAnyAccount) {
+        return next();
+      }
+
+      // For regular users, check if the account belongs to them
+      const Account = (await import("../models/Account.js")).default;
+      const account = await Account.findOne({
+        accountNumber: accountNumber,
+        userId: userId,
+      });
+
+      if (!account) {
+        return next(
+          new ApiError(
+            403,
+            "Access Denied: You can only view your own transaction history"
+          )
+        );
+      }
+
+      next();
+    } catch (error) {
+      console.error("Transaction history access check error:", error);
+      return next(
+        new ApiError(500, "Error checking transaction history access")
+      );
+    }
+  },
+  GetTransactionHistory
+);
+
+// Get transaction summary - Users can view their own summary, admins can view any
+TransactionRouter.get(
+  "/getTransactionSummaryForUser",
+  Authenticated,
+  transactionRoleChecks.canViewOwnTransactions,
+  TransactionSummary
+);
+
+// Admin-only routes for transaction management
+TransactionRouter.get(
+  "/admin/all-transactions",
+  Authenticated,
+  hasRole([ROLE_TYPES.ADMIN, ROLE_TYPES.MANAGER]),
   query("page")
     .optional()
     .isInt({ min: 1 })
@@ -123,69 +229,85 @@ const transactionHistoryValidation = [
     .optional()
     .isInt({ min: 1, max: 100 })
     .withMessage("Limit must be between 1 and 100"),
-  query("dateFrom")
+  query("status")
     .optional()
-    .isISO8601()
-    .withMessage("Invalid date format for dateFrom"),
-  query("dateTo")
+    .isIn(["pending", "completed", "failed", "cancelled"])
+    .withMessage("Invalid status"),
+  query("type")
     .optional()
-    .isISO8601()
-    .withMessage("Invalid date format for dateTo"),
-  query("amountMin")
-    .optional()
-    .isNumeric()
-    .withMessage("Amount minimum must be a number"),
-  query("amountMax")
-    .optional()
-    .isNumeric()
-    .withMessage("Amount maximum must be a number"),
-];
-
-//(only user,lender,borrower)
-TransactionRouter.post(
-  "/deposit",
-  Authenticated,
-  // depositValidation,
-  // handleValidationErrors,
-  // depositFunds
-
-  DepositFunds
+    .isIn(["deposit", "withdrawal", "transfer", "payment", "fee", "interest"])
+    .withMessage("Invalid type"),
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      // This would call an admin-specific controller method
+      // For now, just return a success message
+      res.status(200).json({
+        success: true,
+        message: "Admin transaction view - implement controller method",
+        data: {
+          userRole: req.userRoles,
+          allowedActions: [
+            "view_all_transactions",
+            "cancel_transactions",
+            "reverse_transactions",
+          ],
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 );
 
-//(only user,lender,borrower)
-TransactionRouter.post(
-  "/withdraw",
+// Manager and Admin can cancel transactions
+TransactionRouter.put(
+  "/admin/cancel/:transactionId",
   Authenticated,
-  // withdrawalValidation,
-  // handleValidationErrors,
-  // withdrawFunds
-  WithDrawFunds
+  hasRole([ROLE_TYPES.ADMIN, ROLE_TYPES.MANAGER]),
+  param("transactionId")
+    .isMongoId()
+    .withMessage("Invalid transaction ID format"),
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      // This would call a transaction cancellation controller method
+      res.status(200).json({
+        success: true,
+        message: "Transaction cancellation - implement controller method",
+        data: { transactionId: req.params.transactionId },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 );
 
-//(same as above)
-TransactionRouter.post(
-  "/transfer",
+// Admin-only route to reverse transactions
+TransactionRouter.put(
+  "/admin/reverse/:transactionId",
   Authenticated,
-  // transferValidation,
-  // handleValidationErrors,
-  // transferFunds
-  TransferFunds
-);
-
-//(SAME AS ABOVE)
-TransactionRouter.get(
-  "/getTransactionHistroy/:accountNumber",
-  Authenticated,
-  // transactionHistoryValidation,
-  // handleValidationErrors,
-  // getTransactionHistory
-  GetTransactionHistory
-);
-
-TransactionRouter.get(
-  "/getTransactionSummaryForUser",
-  Authenticated,
-  TransactionSummary
+  hasRole([ROLE_TYPES.ADMIN]),
+  param("transactionId")
+    .isMongoId()
+    .withMessage("Invalid transaction ID format"),
+  body("reason").notEmpty().withMessage("Reason for reversal is required"),
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      // This would call a transaction reversal controller method
+      res.status(200).json({
+        success: true,
+        message: "Transaction reversal - implement controller method",
+        data: {
+          transactionId: req.params.transactionId,
+          reason: req.body.reason,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 );
 
 export default TransactionRouter;

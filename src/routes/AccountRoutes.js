@@ -7,6 +7,12 @@ import {
   CloseUserAccount,
 } from "../controller/AccountController.js";
 import { Authenticated } from "../middleware/authMiddleware.js";
+import {
+  hasRole,
+  checkAccountOwnership,
+  accountRoleChecks,
+  ROLE_TYPES,
+} from "../middleware/roleMiddleware.js";
 import { body, param, query, validationResult } from "express-validator";
 import { ApiError } from "../helpers/ApiError.js";
 
@@ -92,104 +98,136 @@ const getAccountsValidation = [
     .withMessage("Limit must be between 1 and 100"),
 ];
 
+// Create account - All authenticated users can create accounts
 AccountRoute.post(
   "/",
   Authenticated,
+  accountRoleChecks.canCreateAccount,
   createAccountValidation,
   handleValidationErrors,
   CreateAccount
 );
 
+// Get all accounts - Admins and managers can see all, others see only their own
 AccountRoute.get(
   "/",
   Authenticated,
+  accountRoleChecks.canViewAccount,
   getAccountsValidation,
   handleValidationErrors,
   getAllAccount
 );
 
+// Get specific account - Users can view their own accounts, admins can view any
 AccountRoute.get(
   "/:accountId",
   Authenticated,
+  accountRoleChecks.canViewAccount,
   param("accountId").isMongoId().withMessage("Invalid account ID format"),
   handleValidationErrors,
+  checkAccountOwnership(),
   getUserAccount
 );
 
+// Update account - Users can update their own accounts, admins can update any
 AccountRoute.put(
   "/:accountId",
   Authenticated,
+  accountRoleChecks.canUpdateAccount,
   updateAccountValidation,
   handleValidationErrors,
+  checkAccountOwnership(),
   UpdateUserAccount
 );
 
+// Close account - Users can close their own accounts, admins can close any
 AccountRoute.post(
   "/:accountId/close",
   Authenticated,
+  accountRoleChecks.canCloseAccount,
   closeAccountValidation,
   handleValidationErrors,
+  checkAccountOwnership(),
   CloseUserAccount
 );
 
-AccountRoute.get("/types", Authenticated, async (req, res, next) => {
-  try {
-    const userId = req.user;
-    const userProfile = await RoleUserService.getUserCompleteProfile(userId);
+// Get account types - Available to all authenticated users
+AccountRoute.get(
+  "/types",
+  Authenticated,
+  hasRole([
+    ROLE_TYPES.USER,
+    ROLE_TYPES.BORROWER,
+    ROLE_TYPES.LENDER,
+    ROLE_TYPES.ADMIN,
+  ]),
+  async (req, res, next) => {
+    try {
+      const userId = req.user;
+      const userRoles = req.userRoles; // Set by role middleware
 
-    const accountTypes = [
-      {
-        type: "savings",
-        description: "Standard savings account with interest",
-        minDeposit: 100,
-        interestRate: 3.5,
-        requirements: ["Available to all users"],
-        available: true,
-      },
-      {
-        type: "loan",
-        description: "Loan account for borrowing funds",
-        minDeposit: 0,
-        interestRate: 8.5,
-        requirements: ["Must have BORROWER role"],
-        available: userProfile.roles.includes(ROLE_TYPES.BORROWER),
-      },
-      {
-        type: "credit",
-        description: "Credit account with revolving credit line",
-        minDeposit: 0,
-        interestRate: 18.0,
-        requirements: ["Must have BORROWER or LENDER role"],
-        available:
-          userProfile.roles.includes(ROLE_TYPES.BORROWER) ||
-          userProfile.roles.includes(ROLE_TYPES.LENDER),
-      },
-      {
-        type: "investment",
-        description: "Investment account for portfolio management",
-        minDeposit: 1000,
-        interestRate: 5.0,
-        requirements: ["Must have LENDER role or ADMIN role"],
-        available:
-          userProfile.roles.includes(ROLE_TYPES.LENDER) ||
-          userProfile.roles.includes(ROLE_TYPES.ADMIN),
-      },
-    ];
+      const accountTypes = [
+        {
+          type: "savings",
+          description: "Standard savings account with interest",
+          minDeposit: 100,
+          interestRate: 3.5,
+          requirements: ["Available to all users"],
+          available: true,
+        },
+        {
+          type: "checking",
+          description: "Checking account for daily transactions",
+          minDeposit: 50,
+          interestRate: 1.0,
+          requirements: ["Available to all users"],
+          available: true,
+        },
+        {
+          type: "loan",
+          description: "Loan account for borrowing funds",
+          minDeposit: 0,
+          interestRate: 8.5,
+          requirements: ["Must have BORROWER role"],
+          available: userRoles.includes(ROLE_TYPES.BORROWER),
+        },
+        {
+          type: "credit",
+          description: "Credit account with revolving credit line",
+          minDeposit: 0,
+          interestRate: 18.0,
+          requirements: ["Must have BORROWER or LENDER role"],
+          available:
+            userRoles.includes(ROLE_TYPES.BORROWER) ||
+            userRoles.includes(ROLE_TYPES.LENDER),
+        },
+        {
+          type: "investment",
+          description: "Investment account for portfolio management",
+          minDeposit: 1000,
+          interestRate: 5.0,
+          requirements: ["Must have LENDER role or ADMIN role"],
+          available:
+            userRoles.includes(ROLE_TYPES.LENDER) ||
+            userRoles.includes(ROLE_TYPES.ADMIN),
+        },
+      ];
 
-    res.status(200).json({
-      success: true,
-      statusCode: 200,
-      data: {
-        availableTypes: accountTypes.filter((type) => type.available),
-        allTypes: accountTypes,
-        userRoles: userProfile.roles,
-      },
-      message: "Account types retrieved successfully",
-    });
-  } catch (error) {
-    console.error("Get account types error:", error);
-    return next(new ApiError(500, "Failed to retrieve account types"));
+      res.status(200).json({
+        success: true,
+        statusCode: 200,
+        data: {
+          availableTypes: accountTypes.filter((type) => type.available),
+          allTypes: accountTypes,
+          userRoles: userRoles,
+        },
+        message: "Account types retrieved successfully",
+      });
+    } catch (error) {
+      console.error("Get account types error:", error);
+      return next(new ApiError(500, "Failed to retrieve account types"));
+    }
   }
-});
+);
 
 export default AccountRoute;
