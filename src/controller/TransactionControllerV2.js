@@ -130,12 +130,13 @@ export const GetAccountBalance = asyncHandler(async (req, res, next) => {
   const { limit = 10 } = req.params || req.query;
 
   const userId = req.user;
-
+  console.log(userId);
   try {
     const account = await Account.findOne({
       accountNumber: accountNumber,
       userId,
     });
+    console.log(account);
     if (!account) {
       return next(new ApiError(404, "Account not found bro :("));
     }
