@@ -4,11 +4,13 @@ import { Authenticated } from "../middleware/authMiddleware.js";
 import { hasRole, ROLE_TYPES } from "../middleware/roleMiddleware.js";
 import {
   DepositFunds,
+  GetAccountBalance,
   GetTransactionHistory,
   TransactionSummary,
   TransferFunds,
   WithDrawFunds,
 } from "../controller/TransactionControllerV2.js";
+// import Role from "../models/Role.js";
 
 const router = express.Router();
 
@@ -52,6 +54,18 @@ router.get(
   GetTransactionHistory
 );
 
+router.get(
+  "/getUserAccount",
+  Authenticated,
+  hasRole([
+    ROLE_TYPES.USER,
+    ROLE_TYPES.BORROWER,
+    ROLE_TYPES.LENDER,
+    ROLE_TYPES.ADMIN,
+    ROLE_TYPES.MANAGER,
+  ]),
+  GetAccountBalance
+);
 // Get transaction summary (All authenticated users)
 router.get(
   "/summary",
