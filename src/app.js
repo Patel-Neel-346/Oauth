@@ -19,12 +19,12 @@ const app = express();
 
 connectDb();
 
-app.use(
-  cors({
-    origin: ["http://localhost:5500", "http://127.0.0.1:5500"],
-    credentials: true,
-  })
-);
+// app.use(
+//   cors({
+//     origin: ["http://localhost:5500", "http://127.0.0.1:5500"],
+//     credentials: true,
+//   })
+// );
 
 app.use(express.static("public"));
 app.use(express.json({ limit: "50mb" }));
