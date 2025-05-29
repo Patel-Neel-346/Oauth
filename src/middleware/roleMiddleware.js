@@ -1,13 +1,7 @@
-// src/middleware/roleMiddleware.js - Enhanced Role-Based Access Control
-
 import { ApiError } from "../helpers/ApiError.js";
 import Role from "../models/Role.js";
 import { ROLE_TYPES } from "../models/Role.js";
 
-/**
- * Role hierarchy definition
- * Higher level roles inherit permissions from lower levels
- */
 const ROLE_HIERARCHY = {
   [ROLE_TYPES.USER]: 1,
   [ROLE_TYPES.BORROWER]: 2,
@@ -16,12 +10,6 @@ const ROLE_HIERARCHY = {
   [ROLE_TYPES.ADMIN]: 5,
 };
 
-/**
- * Check if user has any of the required roles
- * @param {Array} allowedRoles - Array of role names that are allowed
- * @param {Object} options - Additional options for role checking
- * @returns {Function} Express middleware function
- */
 export const hasRole = (allowedRoles, options = {}) => {
   return async (req, res, next) => {
     try {
@@ -70,12 +58,6 @@ export const hasRole = (allowedRoles, options = {}) => {
   };
 };
 
-/**
- * Check if user has specific role with hierarchy support
- * @param {String} requiredRole - Minimum required role
- * @param {Object} options - Additional options
- * @returns {Function} Express middleware function
- */
 export const hasMinimumRole = (requiredRole, options = {}) => {
   return async (req, res, next) => {
     try {
@@ -112,12 +94,6 @@ export const hasMinimumRole = (requiredRole, options = {}) => {
   };
 };
 
-/**
- * Resource ownership check - ensures user can only access their own resources
- * @param {String} resourceField - Field name to check for ownership (default: 'userId')
- * @param {Array} exemptRoles - Roles that can access any resource (default: ['admin', 'manager'])
- * @returns {Function} Express middleware function
- */
 export const checkResourceOwnership = (
   resourceField = "userId",
   exemptRoles = [ROLE_TYPES.ADMIN, ROLE_TYPES.MANAGER]
@@ -164,11 +140,6 @@ export const checkResourceOwnership = (
   };
 };
 
-/**
- * Account ownership check - specifically for account-related operations
- * @param {String} accountParam - Parameter name for account ID (default: 'accountId')
- * @returns {Function} Express middleware function
- */
 export const checkAccountOwnership = (accountParam = "accountId") => {
   return async (req, res, next) => {
     try {
@@ -218,9 +189,6 @@ export const checkAccountOwnership = (accountParam = "accountId") => {
   };
 };
 
-/**
- * Loan-specific role checks
- */
 export const loanRoleChecks = {
   // Only lenders can create loan offers
   canCreateLoanOffer: hasRole([ROLE_TYPES.LENDER]),
