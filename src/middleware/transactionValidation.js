@@ -1,4 +1,4 @@
-// src/middleware/transactionValidator.js
+// src/middleware/transactionValidation.js
 import { body, param, query, validationResult } from "express-validator";
 import { ApiError } from "../utils/ApiError.js";
 
@@ -229,100 +229,6 @@ export const transactionSummaryValidation = [
     .withMessage("Period must be one of: day, week, month, quarter, year"),
 
   query("accountId").optional().isMongoId().withMessage("Invalid account ID"),
-
-  handleValidationErrors,
-];
-
-// ========== ACCOUNT VALIDATIONS ==========
-
-export const createAccountValidation = [
-  body("accountType")
-    .isIn(["savings", "checking", "loan", "credit", "investment"])
-    .withMessage("Invalid account type"),
-
-  body("initialDeposit")
-    .optional()
-    .isNumeric()
-    .withMessage("Initial deposit must be a number")
-    .isFloat({ min: 0 })
-    .withMessage("Initial deposit must be non-negative"),
-
-  body("currency")
-    .optional()
-    .trim()
-    .isLength({ min: 1, max: 3 })
-    .withMessage("Currency must be 1-3 characters"),
-
-  handleValidationErrors,
-];
-
-export const getAllAccountsValidation = [
-  query("status")
-    .optional()
-    .isIn(["active", "inactive", "suspended", "closed"])
-    .withMessage("Invalid account status"),
-
-  query("accountType")
-    .optional()
-    .isIn(["savings", "checking", "loan", "credit", "investment"])
-    .withMessage("Invalid account type"),
-
-  query("page")
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage("Page must be a positive integer"),
-
-  query("limit")
-    .optional()
-    .isInt({ min: 1, max: 100 })
-    .withMessage("Limit must be between 1 and 100"),
-
-  handleValidationErrors,
-];
-
-export const getUserAccountValidation = [
-  param("accountId").isMongoId().withMessage("Invalid account ID"),
-
-  handleValidationErrors,
-];
-
-export const updateUserAccountValidation = [
-  param("accountId").isMongoId().withMessage("Invalid account ID"),
-
-  body("status")
-    .optional()
-    .isIn(["active", "inactive", "suspended", "closed"])
-    .withMessage("Invalid account status"),
-
-  body("interestRate")
-    .optional()
-    .isNumeric()
-    .withMessage("Interest rate must be a number")
-    .isFloat({ min: 0, max: 50 })
-    .withMessage("Interest rate must be between 0% and 50%"),
-
-  body("currency")
-    .optional()
-    .trim()
-    .isLength({ min: 1, max: 3 })
-    .withMessage("Currency must be 1-3 characters"),
-
-  handleValidationErrors,
-];
-
-export const closeUserAccountValidation = [
-  param("accountId").isMongoId().withMessage("Invalid account ID"),
-
-  body("reason")
-    .optional()
-    .trim()
-    .isLength({ max: 500 })
-    .withMessage("Reason must be less than 500 characters"),
-
-  body("transferAccountId")
-    .optional()
-    .isMongoId()
-    .withMessage("Invalid transfer account ID"),
 
   handleValidationErrors,
 ];

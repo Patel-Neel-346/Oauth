@@ -1,4 +1,4 @@
-// src/routes/TransactionRoutes.js - Simplified Clean Version
+// src/routes/TransactionRoutes.js
 import express from "express";
 import { Authenticated } from "../middleware/authMiddleware.js";
 import { hasRole, ROLE_TYPES } from "../middleware/roleMiddleware.js";
@@ -10,45 +10,47 @@ import {
   TransferFunds,
   WithDrawFunds,
 } from "../controller/TransactionControllerV2.js";
-// import Role from "../models/Role.js";
+import {
+  depositFundsValidation,
+  withdrawFundsValidation,
+  transferFundsValidation,
+  getTransactionHistoryValidation,
+  getAccountBalanceValidation,
+  transactionSummaryValidation,
+} from "../middleware/transactionValidation.js";
 
 const router = express.Router();
 
 // ========== BASIC TRANSACTION ROUTES ==========
 
 // Deposit funds (User, Borrower, Lender)
-//  const { accountNumber, amount, description } = req.body;
-
 router.post(
   "/deposit",
   Authenticated,
   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
+  depositFundsValidation,
   DepositFunds
 );
 
 // Withdraw funds (User, Borrower, Lender)
-//  const { accountNumber, amount, description } = req.body;
-
 router.post(
   "/withdraw",
   Authenticated,
   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
+  withdrawFundsValidation,
   WithDrawFunds
 );
 
 // Transfer funds (User, Borrower, Lender)
-//  const { fromAccountNumber, toAccountNumber, amount, description } = req.body;
-
 router.post(
   "/transfer",
   Authenticated,
   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
+  transferFundsValidation,
   TransferFunds
 );
 
 // Get transaction history (All authenticated users)
-// const { accountNumber } = req.params || req.query;
-// const { limit = 10 } = req.params || req.query;
 router.get(
   "/history/:accountNumber",
   Authenticated,
@@ -59,19 +61,11 @@ router.get(
     ROLE_TYPES.ADMIN,
     ROLE_TYPES.MANAGER,
   ]),
+  getTransactionHistoryValidation,
   GetTransactionHistory
 );
-// const { accountNumber } = req.body || req.params || req.query;
-// const {
-// type,
-// status,
-// dateFrom,
-// dateTo,
-// amountMin,
-// amountMax,
-// page = 1,
-// limit = 10,
-// } = req.query;
+
+// Get account balance and filtered transactions
 router.get(
   "/getUserAccount",
   Authenticated,
@@ -82,11 +76,11 @@ router.get(
     ROLE_TYPES.ADMIN,
     ROLE_TYPES.MANAGER,
   ]),
+  getAccountBalanceValidation,
   GetAccountBalance
 );
+
 // Get transaction summary (All authenticated users)
-// const userId = req.user;
-// const { period = "month", accountId } = req.query;
 router.get(
   "/summary",
   Authenticated,
@@ -97,6 +91,7 @@ router.get(
     ROLE_TYPES.ADMIN,
     ROLE_TYPES.MANAGER,
   ]),
+  transactionSummaryValidation,
   TransactionSummary
 );
 
