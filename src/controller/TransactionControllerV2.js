@@ -233,7 +233,7 @@ export const TransactionSummary = asyncHandler(async (req, res, next) => {
 
       const account = await Account.findOne(accountQuery);
       if (!account) {
-        return next(new ApiError(404, "Account not found bitch :-]"));
+        return next(new ApiError(404, "Account not found  :-]"));
       }
     }
 

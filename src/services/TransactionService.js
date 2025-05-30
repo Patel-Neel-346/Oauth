@@ -109,18 +109,15 @@ class TransactionServiceV2 {
 
       const account = await Account.findById(accountId);
       if (!account) {
-        throw new ApiError(404, "sorry litle bro your account not found ");
+        throw new ApiError(404, "Your account not Found :() ");
       }
 
       if (account.status != "active") {
-        throw new ApiError(404, "atleast Actived You accoutn litle bro ");
+        throw new ApiError(404, "Pls active you account :-: ");
       }
 
       if (account.balance <= amount) {
-        throw new ApiError(
-          404,
-          "You are broke litle bro atleast put so money in bank lol ,you are poor man"
-        );
+        throw new ApiError(404, "Dont have Engough Balance in Bank Account ");
       }
 
       const transaction = new Transaction({
@@ -209,7 +206,7 @@ class TransactionServiceV2 {
       if (fromAccount.balance < amount) {
         throw new ApiError(
           400,
-          "Bro you have not enough money to tranfer man ,you suck "
+          "Bro you have not enough money to tranfer man "
         );
       }
 
@@ -232,7 +229,7 @@ class TransactionServiceV2 {
       const totalDeduction = amount + tranferFee;
 
       if (fromAccount.balance < totalDeduction) {
-        throw new ApiError(400, "Dont have Enough Money ,You broke man lol ");
+        throw new ApiError(400, "Dont have Enough Money In Account :_:");
       }
 
       const transaction = new Transaction({

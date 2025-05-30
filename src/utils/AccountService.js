@@ -150,15 +150,6 @@ class TransactionService {
     }
   }
 
-  /**
-   * Transfer funds between accounts
-   * @param {string} fromAccountId - Source account ID
-   * @param {string} toAccountId - Destination account ID
-   * @param {number} amount - Transfer amount
-   * @param {string} description - Transaction description
-   * @param {object} metadata - Additional transaction data
-   * @returns {object} Transaction result
-   */
   static async transferFunds(
     fromAccountId,
     toAccountId,
@@ -300,12 +291,6 @@ class TransactionService {
     }
   }
 
-  /**
-   * Get account balance and recent transactions
-   * @param {string} accountId - Account ID
-   * @param {number} limit - Number of recent transactions to retrieve
-   * @returns {object} Account balance and transactions
-   */
   static async getAccountBalance(accountId, limit = 10) {
     try {
       const account = await Account.findById(accountId);
@@ -336,14 +321,6 @@ class TransactionService {
     }
   }
 
-  /**
-   * Get transaction history for an account
-   * @param {string} accountId - Account ID
-   * @param {object} filters - Filter options
-   * @param {number} page - Page number
-   * @param {number} limit - Records per page
-   * @returns {object} Transaction history with pagination
-   */
   static async getTransactionHistory(
     accountId,
     filters = {},
@@ -426,11 +403,6 @@ class TransactionService {
     }
   }
 
-  /**
-   * Process interest payment for savings accounts
-   * @param {string} accountId - Account ID
-   * @returns {object} Interest transaction result
-   */
   static async processInterestPayment(accountId) {
     try {
       const account = await Account.findById(accountId);
@@ -494,12 +466,6 @@ class TransactionService {
     }
   }
 
-  /**
-   * Reverse a transaction (admin function)
-   * @param {string} transactionId - Transaction ID to reverse
-   * @param {string} reason - Reason for reversal
-   * @returns {object} Reversal result
-   */
   static async reverseTransaction(
     transactionId,
     reason = "Transaction reversal"
@@ -618,13 +584,6 @@ class TransactionService {
     }
   }
 
-  // Helper methods
-
-  /**
-   * Get minimum balance requirement for account type
-   * @param {string} accountType - Account type
-   * @returns {number} Minimum balance
-   */
   static getMinimumBalance(accountType) {
     const minimumBalances = {
       savings: 100,
@@ -636,13 +595,6 @@ class TransactionService {
     return minimumBalances[accountType] || 0;
   }
 
-  /**
-   * Calculate transfer fee
-   * @param {object} fromAccount - Source account
-   * @param {object} toAccount - Destination account
-   * @param {number} amount - Transfer amount
-   * @returns {number} Transfer fee
-   */
   static calculateTransferFee(fromAccount, toAccount, amount) {
     // Same user transfers are free
     if (fromAccount.userId.toString() === toAccount.userId.toString()) {
@@ -664,12 +616,6 @@ class TransactionService {
     return parseFloat(fee.toFixed(2));
   }
 
-  /**
-   * Calculate transaction summary for an account
-   * @param {string} accountId - Account ID
-   * @param {object} filters - Filter options
-   * @returns {object} Transaction summary
-   */
   static async calculateTransactionSummary(accountId, filters = {}) {
     try {
       const query = {
