@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "0d29a9ae-c25f-4bf5-8585-e625d07ac910",
-		"name": "Loan Management System API",
+		"_postman_id": "cba81e58-1c58-44e6-810e-351de9e5df50",
+		"name": "Loan Management System API Copy 3",
 		"description": "API test collection for the Loan Management System with role-based authentication",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
 		"_exporter_id": "37897270"
@@ -282,7 +282,7 @@
 					"response": []
 				},
 				{
-					"name": "Role-Based Login",
+					"name": "Role-Based Login(Admin)",
 					"event": [
 						{
 							"listen": "test",
@@ -460,315 +460,9 @@
 						"description": "Add a borrower role to an existing user"
 					},
 					"response": []
-				},
-				{
-					"name": "Remove Role from User",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Role removed successfully\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.message).to.include(\"role removed successfully\");",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{authToken}}"
-							}
-						],
-						"url": "{{baseUrl}}/auth/role/borrower",
-						"description": "Remove a borrower role from a user"
-					},
-					"response": []
 				}
 			],
 			"description": "Endpoints for managing user profiles and roles"
-		},
-		{
-			"name": "Role-Based Dashboards",
-			"item": [
-				{
-					"name": "User Dashboard",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{authToken}}"
-							}
-						],
-						"url": "{{baseUrl}}/auth/dashboard/user",
-						"description": "Get the standard user dashboard"
-					},
-					"response": []
-				},
-				{
-					"name": "Borrower Dashboard",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{borrowerAuthToken}}"
-							}
-						],
-						"url": "{{baseUrl}}/auth/dashboard/borrower",
-						"description": "Get the borrower-specific dashboard (requires borrower role)"
-					},
-					"response": []
-				},
-				{
-					"name": "Lender Dashboard",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{lenderAuthToken}}"
-							}
-						],
-						"url": "{{baseUrl}}/auth/dashboard/lender",
-						"description": "Get the lender-specific dashboard (requires lender role)"
-					},
-					"response": []
-				},
-				{
-					"name": "Manager Dashboard",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{managerAuthToken}}"
-							}
-						],
-						"url": "{{baseUrl}}/auth/dashboard/manager",
-						"description": "Get the manager-specific dashboard (requires manager role)"
-					},
-					"response": []
-				}
-			],
-			"description": "Endpoints for role-specific dashboards"
-		},
-		{
-			"name": "Loan Management",
-			"item": [
-				{
-					"name": "Apply for Loan (Borrower Only)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 201\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});",
-									"",
-									"pm.test(\"Loan application created\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.data.loan).to.be.an('object');",
-									"    pm.environment.set(\"loanId\", jsonData.data.loan._id);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "Bearer {{borrowerAuthToken}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"amount\": 10000,\n    \"term\": 12,\n    \"purpose\": \"personal\"\n}"
-						},
-						"url": "{{baseUrl}}/loans/apply",
-						"description": "Apply for a new loan (borrower access only)"
-					},
-					"response": []
-				},
-				{
-					"name": "Review Loan Application (Lender Only)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Loan application status updated\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.data.loan.status).to.equal(\"approved\");",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PATCH",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "Bearer {{lenderAuthToken}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"status\": \"approved\",\n    \"interestRate\": 5.5\n}"
-						},
-						"url": "{{baseUrl}}/loans/{{loanId}}/review",
-						"description": "Review and approve/reject a loan application (lender access only)"
-					},
-					"response": []
-				},
-				{
-					"name": "Get Borrower Loans",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Loans array returned\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.data.loans).to.be.an('array');",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{borrowerAuthToken}}"
-							}
-						],
-						"url": "{{baseUrl}}/loans/borrower",
-						"description": "Get all loans for the current borrower"
-					},
-					"response": []
-				},
-				{
-					"name": "Get Lender Loans",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Loans array returned\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.data.loans).to.be.an('array');",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{lenderAuthToken}}"
-							}
-						],
-						"url": "{{baseUrl}}/loans/lender",
-						"description": "Get all loans managed by the current lender"
-					},
-					"response": []
-				}
-			],
-			"description": "Endpoints for loan application and management (role-specific access)"
 		},
 		{
 			"name": "Account",
@@ -1086,641 +780,565 @@
 			]
 		},
 		{
-			"name": "Loan",
+			"name": "Loan Offers",
 			"item": [
 				{
-					"name": "New Request",
+					"name": "Create Loan Offer",
 					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"title\": \"Startup Business Expansion Loan\",\r\n  \"description\": \"This loan is designed to help small business owners expand their operations.\",\r\n  \"minAmount\": 10000,\r\n  \"maxAmount\": 50000,\r\n  \"interestRate\": 9.5,\r\n  \"termOptions\": 12,\r\n  \"loanPurpose\": \"business\",\r\n  \"eligibilityCriteria\": {\r\n    \"minCreditScore\": 620,\r\n    \"maxDebtToIncomeRatio\": 0.45,\r\n    \"minMonthlyIncome\": 4000,\r\n    \"employmentStatus\": \"self-employed\",\r\n    \"minEmploymentDuration\": 12\r\n  },\r\n  \"totalOffered\": 30000,\r\n  \"autoApproval\": true,\r\n  \"expiryDate\": \"2025-12-31T00:00:00.000Z\"\r\n}\r\n",
-							"options": {
-								"raw": {
-									"language": "json"
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"0": {
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
 								}
 							}
 						},
-						"url": "http://localhost:7000/loan/offers"
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Personal Loan Offer\",\n  \"description\": \"Competitive personal loan with flexible terms\",\n  \"minAmount\": 10000,\n  \"maxAmount\": 500000,\n  \"interestRate\": 12.5,\n  \"termOptions\": [12, 24, 36, 48, 60],\n  \"loanPurpose\": [\"personal\", \"education\", \"vehicle\"],\n  \"eligibilityCriteria\": {\n    \"minCreditScore\": 650,\n    \"maxDebtToIncomeRatio\": 0.4,\n    \"minMonthlyIncome\": 30000,\n    \"employmentStatus\": [\"employed\", \"self-employed\"],\n    \"minEmploymentDuration\": 12\n  },\n  \"totalOffered\": 2000000,\n  \"autoApproval\": false,\n  \"expiryDate\": \"2024-12-31T23:59:59.000Z\"\n}"
+						},
+						"url": "{{baseUrl}}/loan/offers"
 					},
 					"response": []
 				},
 				{
-					"name": "GetAllLonsOffers",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
+					"name": "Get All Loan Offers",
 					"request": {
 						"auth": {
-							"type": "noauth"
+							"type": "bearer",
+							"bearer": {
+								"0": {
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							}
 						},
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "urlencoded",
-							"urlencoded": [
-								{
-									"key": "minAmount",
-									"value": "5000",
-									"type": "text"
-								},
-								{
-									"key": "maxAmount",
-									"value": "25000",
-									"type": "text"
-								},
-								{
-									"key": "maxInterestRate",
-									"value": "10",
-									"type": "text"
-								},
-								{
-									"key": "purpose",
-									"value": "business",
-									"type": "text"
-								},
-								{
-									"key": "term",
-									"value": "12",
-									"type": "text"
-								},
+						"url": {
+							"raw": "{{baseUrl}}/loan/offers?page=1&limit=10&minAmount=10000&maxAmount=500000&maxInterestRate=15&purpose=personal&term=24",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"loan",
+								"offers"
+							],
+							"query": [
 								{
 									"key": "page",
-									"value": "",
-									"type": "text",
-									"disabled": true
+									"value": "1"
 								},
 								{
 									"key": "limit",
-									"value": "",
-									"type": "text",
-									"disabled": true
+									"value": "10"
+								},
+								{
+									"key": "minAmount",
+									"value": "10000"
+								},
+								{
+									"key": "maxAmount",
+									"value": "500000"
+								},
+								{
+									"key": "maxInterestRate",
+									"value": "15"
+								},
+								{
+									"key": "purpose",
+									"value": "personal"
+								},
+								{
+									"key": "term",
+									"value": "24"
 								}
 							]
-						},
-						"url": "http://localhost:7000/loan/offers"
+						}
 					},
 					"response": []
 				},
 				{
-					"name": "LoanApplication",
+					"name": "Get Loan Offer Details",
 					"request": {
 						"auth": {
-							"type": "noauth"
+							"type": "bearer",
+							"bearer": {
+								"0": {
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							}
 						},
-						"method": "POST",
+						"method": "GET",
 						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/loan/offers/{{offerId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"loan",
+								"offers",
+								"{{offerId}}"
+							],
+							"variable": [
+								{
+									"key": "offerId",
+									"value": "LOAN_OFFER_ID_HERE"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Loan Offer",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"0": {
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							}
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
 						"body": {
-							"mode": "urlencoded",
-							"urlencoded": [
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Personal Loan Offer\",\n  \"description\": \"Updated competitive personal loan with flexible terms\",\n  \"interestRate\": 11.5,\n  \"status\": \"active\",\n  \"autoApproval\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/loan/offers/{{offerId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"loan",
+								"offers",
+								"{{offerId}}"
+							],
+							"variable": [
 								{
-									"key": "minAmount",
-									"value": "5000",
-									"type": "text"
-								},
-								{
-									"key": "maxAmount",
-									"value": "25000",
-									"type": "text"
-								},
-								{
-									"key": "maxInterestRate",
-									"value": "10",
-									"type": "text"
-								},
-								{
-									"key": "purpose",
-									"value": "business",
-									"type": "text"
-								},
-								{
-									"key": "term",
-									"value": "12",
-									"type": "text"
-								},
+									"key": "offerId",
+									"value": "LOAN_OFFER_ID_HERE"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Loan Offers (Lender)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"0": {
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/loan/my-offers?page=1&limit=10&status=active",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"loan",
+								"my-offers"
+							],
+							"query": [
 								{
 									"key": "page",
-									"value": "",
-									"type": "text",
-									"disabled": true
+									"value": "1"
 								},
 								{
 									"key": "limit",
-									"value": "",
-									"type": "text",
-									"disabled": true
+									"value": "10"
+								},
+								{
+									"key": "status",
+									"value": "active"
 								}
 							]
-						},
-						"url": "http://localhost:7000/loan/offers/68343ce10cbd16c7b10159f0/apply"
+						}
 					},
 					"response": []
 				}
-			],
-			"description": "Loan Folder that Contain All Loan related API'S"
+			]
 		},
-		 {
-      "name": "Loan Offers",
-      "item": [
-        {
-          "name": "Create Loan Offer",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{authToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Personal Loan Offer\",\n  \"description\": \"Competitive personal loan with flexible terms\",\n  \"minAmount\": 10000,\n  \"maxAmount\": 500000,\n  \"interestRate\": 12.5,\n  \"termOptions\": [12, 24, 36, 48, 60],\n  \"loanPurpose\": [\"personal\", \"education\", \"vehicle\"],\n  \"eligibilityCriteria\": {\n    \"minCreditScore\": 650,\n    \"maxDebtToIncomeRatio\": 0.4,\n    \"minMonthlyIncome\": 30000,\n    \"employmentStatus\": [\"employed\", \"self-employed\"],\n    \"minEmploymentDuration\": 12\n  },\n  \"totalOffered\": 2000000,\n  \"autoApproval\": false,\n  \"expiryDate\": \"2024-12-31T23:59:59.000Z\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/loan/offers",
-              "host": ["{{baseUrl}}"],
-              "path": ["loan", "offers"]
-            }
-          }
-        },
-        {
-          "name": "Get All Loan Offers",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{authToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{baseUrl}}/loan/offers?page=1&limit=10&minAmount=10000&maxAmount=500000&maxInterestRate=15&purpose=personal&term=24",
-              "host": ["{{baseUrl}}"],
-              "path": ["loan", "offers"],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                },
-                {
-                  "key": "minAmount",
-                  "value": "10000"
-                },
-                {
-                  "key": "maxAmount",
-                  "value": "500000"
-                },
-                {
-                  "key": "maxInterestRate",
-                  "value": "15"
-                },
-                {
-                  "key": "purpose",
-                  "value": "personal"
-                },
-                {
-                  "key": "term",
-                  "value": "24"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Loan Offer Details",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{authToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{baseUrl}}/loan/offers/{{offerId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["loan", "offers", "{{offerId}}"],
-              "variable": [
-                {
-                  "key": "offerId",
-                  "value": "LOAN_OFFER_ID_HERE"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Update Loan Offer",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{authToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Updated Personal Loan Offer\",\n  \"description\": \"Updated competitive personal loan with flexible terms\",\n  \"interestRate\": 11.5,\n  \"status\": \"active\",\n  \"autoApproval\": true\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/loan/offers/{{offerId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["loan", "offers", "{{offerId}}"],
-              "variable": [
-                {
-                  "key": "offerId",
-                  "value": "LOAN_OFFER_ID_HERE"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get My Loan Offers (Lender)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{authToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{baseUrl}}/loan/my-offers?page=1&limit=10&status=active",
-              "host": ["{{baseUrl}}"],
-              "path": ["loan", "my-offers"],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                },
-                {
-                  "key": "status",
-                  "value": "active"
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Loan Applications",
-      "item": [
-        {
-          "name": "Apply for Loan",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{authToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"requestedAmount\": 100000,\n  \"selectedTerm\": 24,\n  \"purpose\": \"personal\",\n  \"purposeDescription\": \"Home renovation and personal expenses\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/loan/offers/{{offerId}}/apply",
-              "host": ["{{baseUrl}}"],
-              "path": ["loan", "offers", "{{offerId}}", "apply"],
-              "variable": [
-                {
-                  "key": "offerId",
-                  "value": "LOAN_OFFER_ID_HERE"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Lender Review Application",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{authToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"decision\": \"approved\",\n  \"comments\": \"Application meets all criteria. Approved for processing.\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/loan/applications/{{applicationId}}/lender-review",
-              "host": ["{{baseUrl}}"],
-              "path": ["loan", "applications", "{{applicationId}}", "lender-review"],
-              "variable": [
-                {
-                  "key": "applicationId",
-                  "value": "APPLICATION_ID_HERE"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Admin Final Approval",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{authToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"decision\": \"approved\",\n  \"comments\": \"Final approval granted. Loan ready for disbursement.\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/loan/applications/{{applicationId}}/admin-approval",
-              "host": ["{{baseUrl}}"],
-              "path": ["loan", "applications", "{{applicationId}}", "admin-approval"],
-              "variable": [
-                {
-                  "key": "applicationId",
-                  "value": "APPLICATION_ID_HERE"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Applications",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{authToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{baseUrl}}/loan/applications?page=1&limit=10&status=pending",
-              "host": ["{{baseUrl}}"],
-              "path": ["loan", "applications"],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                },
-                {
-                  "key": "status",
-                  "value": "pending"
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-	 {
-      "name": "P2P Loan Management",
-      "item": [
-        {
-          "name": "Disburse Loan (Admin)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"applicationId\": \"APP123456789\",\n  \"borrowerAccountId\": \"ACC987654321\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/disburse",
-              "host": ["{{baseUrl}}"],
-              "path": ["disburse"]
-            }
-          }
-        },
-        {
-          "name": "Make Loan Payment",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"paymentAmount\": 2500,\n  \"accountId\": \"ACC987654321\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/loans/{{loanId}}/payment",
-              "host": ["{{baseUrl}}"],
-              "path": ["loans", "{{loanId}}", "payment"]
-            }
-          }
-        },
-        {
-          "name": "Get Loan Details",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/loans/{{loanId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["loans", "{{loanId}}"]
-            }
-          }
-        },
-        {
-          "name": "Get My Loans",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/my-loans?type=borrowed&status=active&page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["my-loans"],
-              "query": [
-                {
-                  "key": "type",
-                  "value": "borrowed",
-                  "description": "borrowed | lent | all"
-                },
-                {
-                  "key": "status",
-                  "value": "active",
-                  "description": "active | completed | defaulted | closed"
-                },
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get My Lent Loans",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/my-loans?type=lent&status=active&page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["my-loans"],
-              "query": [
-                {
-                  "key": "type",
-                  "value": "lent"
-                },
-                {
-                  "key": "status",
-                  "value": "active"
-                },
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Loan Payment Schedule",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/loans/{{loanId}}/schedule",
-              "host": ["{{baseUrl}}"],
-              "path": ["loans", "{{loanId}}", "schedule"]
-            }
-          }
-        },
-        {
-          "name": "Get Overdue Loans (Admin)",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/overdue?page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["overdue"],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Loan Analytics",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/analytics",
-              "host": ["{{baseUrl}}"],
-              "path": ["analytics"]
-            }
-          }
-        }
-      ]
-    }
+		{
+			"name": "Loan Applications",
+			"item": [
+				{
+					"name": "Apply for Loan(Borrower)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"0": {
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							}
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"requestedAmount\": 100000,\n  \"selectedTerm\": 24,\n  \"purpose\": \"personal\",\n  \"purposeDescription\": \"Home renovation and personal expenses\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/loan/offers/{{offerId}}/apply",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"loan",
+								"offers",
+								"{{offerId}}",
+								"apply"
+							],
+							"variable": [
+								{
+									"key": "offerId",
+									"value": "LOAN_OFFER_ID_HERE"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Lender Review Application(Lender)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"0": {
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							}
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"decision\": \"approved\",\n  \"comments\": \"Application meets all criteria. Approved for processing.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/loan/applications/{{applicationId}}/lender-review",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"loan",
+								"applications",
+								"{{applicationId}}",
+								"lender-review"
+							],
+							"variable": [
+								{
+									"key": "applicationId",
+									"value": "APPLICATION_ID_HERE"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Admin Final Approval(Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"0": {
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							}
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"decision\": \"approved\",\n  \"comments\": \"Final approval granted. Loan ready for disbursement.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/loan/applications/{{applicationId}}/admin-approval",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"loan",
+								"applications",
+								"{{applicationId}}",
+								"admin-approval"
+							],
+							"variable": [
+								{
+									"key": "applicationId",
+									"value": "APPLICATION_ID_HERE"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Applications",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"0": {
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/loan/applications?page=1&limit=10&status=pending",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"loan",
+								"applications"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "status",
+									"value": "pending"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "P2P Loan Management",
+			"item": [
+				{
+					"name": "Disburse Loan (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"applicationId\": \"APP123456789\",\n  \"borrowerAccountId\": \"ACC987654321\"\n}"
+						},
+						"url": "{{baseUrl}}/disburse"
+					},
+					"response": []
+				},
+				{
+					"name": "Make Loan Payment (Borrower/Lender)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"paymentAmount\": 2500,\n  \"accountId\": \"ACC987654321\"\n}"
+						},
+						"url": "{{baseUrl}}/loans/{{loanId}}/payment"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Loan Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/loans/{{loanId}}"
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Loans",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/my-loans?type=borrowed&status=active&page=1&limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"my-loans"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "borrowed",
+									"description": "borrowed | lent | all"
+								},
+								{
+									"key": "status",
+									"value": "active",
+									"description": "active | completed | defaulted | closed"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Lent Loans",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/my-loans?type=lent&status=active&page=1&limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"my-loans"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "lent"
+								},
+								{
+									"key": "status",
+									"value": "active"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Loan Payment Schedule",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/loans/{{loanId}}/schedule"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Overdue Loans (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/overdue?page=1&limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"overdue"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Loan Analytics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/analytics"
+					},
+					"response": []
+				}
+			]
+		}
 	]
 }
