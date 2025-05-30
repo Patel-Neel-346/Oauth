@@ -26,6 +26,20 @@ const router = express.Router();
 // ========== LOAN OFFER ROUTES ==========
 
 // Create a new loan offer (Lender only)
+// const {
+//     title,
+//     description,
+//     minAmount,
+//     maxAmount,
+//     interestRate,
+//     termOptions,
+//     loanPurpose,
+//     eligibilityCriteria,
+//     totalOffered,
+//     autoApproval,
+//     expiryDate,
+//   } = req.body;
+
 router.post(
   "/offers",
   Authenticated,
@@ -34,12 +48,26 @@ router.post(
 );
 
 // Get all active loan offers (All authenticated users)
+
+// const {
+//       minAmount,
+//       maxAmount,
+//       maxInterestRate,
+//       purpose,
+//       term,
+//       page = 1,
+//       limit = 10,
+//     } = queryParams;
 router.get("/offers", Authenticated, GetAllLoanOffers);
 
 // Get specific loan offer details (All authenticated users)
+
+// const { offerId } = req.params;
 router.get("/offers/:offerId", Authenticated, GetLoanOfferDetail);
 
 // Update loan offer (Lender only)
+// const { offerId } = req.params;
+//req.body of Loanoffer but they are optionals
 router.put(
   "/offers/:offerId",
   Authenticated,
@@ -48,6 +76,7 @@ router.put(
 );
 
 // Get lender's own loan offers (Lender only)
+// const { status, page = 1, limit = 10 } = queryParams;
 router.get(
   "/my-offers",
   Authenticated,
@@ -58,6 +87,9 @@ router.get(
 // ========== LOAN APPLICATION ROUTES ==========
 
 // Apply for a specific loan offer (Borrower only)
+//  const { offerId } = req.params;
+// const { requestedAmount, selectedTerm, purpose, purposeDescription } =req.body;
+
 router.post(
   "/offers/:offerId/apply",
   Authenticated,
@@ -66,6 +98,8 @@ router.post(
 );
 
 // Lender review application (Lender only)
+// const { applicationId } = req.params;
+// const { decision, comments } = req.body;
 router.put(
   "/applications/:applicationId/lender-review",
   Authenticated,
@@ -74,6 +108,9 @@ router.put(
 );
 
 // Admin final approval (Admin only)
+// const { applicationId } = req.params;
+// const { decision, comments } = req.body;
+
 router.put(
   "/applications/:applicationId/admin-approval",
   Authenticated,
@@ -82,6 +119,7 @@ router.put(
 );
 
 // Get applications (Borrower, Lender, Admin, Manager)
+// const { status, page = 1, limit = 10 } = req.query;
 router.get(
   "/applications",
   Authenticated,
@@ -97,6 +135,7 @@ router.get(
 // ========== LOAN MANAGEMENT ROUTES ==========
 
 // Disburse loan after approval (Admin only)
+//const { applicationId, borrowerAccountId } = req.body;
 router.post(
   "/disburse",
   Authenticated,
@@ -105,6 +144,8 @@ router.post(
 );
 
 // Make loan payment (Borrower only)
+// const { loanId } = req.params;
+// const { paymentAmount, accountId } = req.body;
 router.post(
   "/loans/:loanId/payment",
   Authenticated,
@@ -113,6 +154,8 @@ router.post(
 );
 
 // Get loan details (Borrower, Lender, Admin)
+// const { loanId } = req.params;
+
 router.get(
   "/loans/:loanId",
   Authenticated,
@@ -121,6 +164,7 @@ router.get(
 );
 
 // Get user's loans (Borrower, Lender, Admin, Manager)
+//   const { type, status, page = 1, limit = 10 } = req.query;
 router.get(
   "/my-loans",
   Authenticated,
@@ -134,6 +178,7 @@ router.get(
 );
 
 // Get loan payment schedule (Borrower, Lender, Admin)
+//  const { loanId } = req.params;
 router.get(
   "/loans/:loanId/schedule",
   Authenticated,
@@ -142,6 +187,7 @@ router.get(
 );
 
 // Get overdue loans (Admin, Manager only)
+// const { page = 1, limit = 10 } = req.query;
 router.get(
   "/overdue",
   Authenticated,

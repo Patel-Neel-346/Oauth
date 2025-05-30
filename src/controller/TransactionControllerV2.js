@@ -42,7 +42,7 @@ export const DepositFunds = asyncHandler(async (req, res, next) => {
 
 export const WithDrawFunds = asyncHandler(async (req, res, next) => {
   const { accountNumber, amount, description } = req.body;
-  const userId = req.body;
+  const userId = req.user;
 
   try {
     const account = await Account.findOne({ accountNumber });

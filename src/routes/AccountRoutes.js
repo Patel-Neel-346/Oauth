@@ -12,6 +12,7 @@ import { hasRole, ROLE_TYPES } from "../middleware/roleMiddleware.js";
 const AccountRoute = express.Router();
 
 // Create account - All authenticated users can create accounts
+//{accountType,initialDeposit,currency}=req.body
 AccountRoute.post(
   "/",
   Authenticated,
@@ -20,6 +21,7 @@ AccountRoute.post(
 );
 
 // Get all accounts - Admins and managers can see all
+//{status,accountType,page,limit}=req.query
 AccountRoute.get(
   "/",
   Authenticated,
@@ -28,6 +30,7 @@ AccountRoute.get(
 );
 
 // Get specific account - Users can view their own accounts, admins can view any
+//{accountId}=req.params
 AccountRoute.get(
   "/:accountId",
   Authenticated,
@@ -42,6 +45,8 @@ AccountRoute.get(
 );
 
 // Update account - Users can update their own accounts, admins can update any
+//  const { accountId } = req.params;
+//  const updates = req.body;
 AccountRoute.put(
   "/:accountId",
   Authenticated,
@@ -55,6 +60,8 @@ AccountRoute.put(
 );
 
 // Close account - Users can close their own accounts, admins can close any
+// const { accountId } = req.params;
+// const { reason, transferAccountId } = req.body;
 AccountRoute.post(
   "/:accountId/close",
   Authenticated,
