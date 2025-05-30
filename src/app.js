@@ -10,7 +10,7 @@ import "./config/passport.js";
 import swaggerDocs from "./config/swagger.js";
 import DataRouter from "./routes/dataRoutes.js";
 import ClientRouter from "./routes/clientRoutes.js";
-import AccountRoute from "./routes/AccountRoutes.js"; // Import Account Routes
+import AccountRoute from "./routes/AccountRoutes.js";
 import TransactionRouter from "./routes/TransactionRoutes.js";
 import router from "./routes/LoanRoute.js";
 
@@ -61,7 +61,7 @@ app.use("/auth", AuthRouter);
 app.use("/api/v1/user", AuthRouter);
 app.use("/data", DataRouter);
 app.use("/clients", ClientRouter);
-app.use("/accounts", AccountRoute); // Add Account Routes
+app.use("/accounts", AccountRoute);
 app.use("/transaction", TransactionRouter);
 app.use("/loan", router);
 

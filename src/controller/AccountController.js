@@ -6,17 +6,14 @@ import User from "../models/User.js";
 import RoleUserService from "../utils/roleUserService.js";
 import { ROLE_TYPES } from "../models/Role.js";
 
-// Create a new account for authenticated user with role-based restrictions
 export const CreateAccount = asyncHandler(async (req, res, next) => {
   const { accountType, initialDeposit = 0, currency = "₹" } = req.body;
   const userId = req.user;
 
-  // Validate required fields
   if (!accountType) {
     return next(new ApiError(400, "Account type is required"));
   }
 
-  // Validate account type
   const validAccountTypes = [
     "savings",
     "checking",
@@ -29,16 +26,13 @@ export const CreateAccount = asyncHandler(async (req, res, next) => {
   }
 
   try {
-    // Get user information
     const user = await User.findById(userId);
     if (!user) {
       return next(new ApiError(404, "User not found"));
     }
 
-    // Get user's complete profile with roles
     const userProfile = await RoleUserService.getUserCompleteProfile(userId);
 
-    // Role-based account creation validation
     const canCreateAccount = await validateAccountCreationByRole(
       accountType,
       userProfile.roles,
@@ -49,7 +43,6 @@ export const CreateAccount = asyncHandler(async (req, res, next) => {
       return next(new ApiError(403, canCreateAccount.message));
     }
 
-    // Check account limits based on user role
     const accountLimitCheck = await checkAccountLimits(
       userId,
       accountType,
@@ -59,10 +52,8 @@ export const CreateAccount = asyncHandler(async (req, res, next) => {
       return next(new ApiError(403, accountLimitCheck.message));
     }
 
-    // Generate unique account number
     const accountNumber = await generateAccountNumber(accountType);
 
-    // Role-based minimum deposit validation
     const minDepositValidation = validateMinimumDeposit(
       accountType,
       initialDeposit,
@@ -72,10 +63,8 @@ export const CreateAccount = asyncHandler(async (req, res, next) => {
       return next(new ApiError(400, minDepositValidation.message));
     }
 
-    // Set interest rate based on account type and user profile
     const interestRate = calculateInterestRate(accountType, userProfile);
 
-    // Create the account
     const newAccount = await Account.create({
       userId,
       accountNumber,
@@ -86,7 +75,6 @@ export const CreateAccount = asyncHandler(async (req, res, next) => {
       status: "active",
     });
 
-    // Update user's primary account number if this is their first primary account
     if (
       !user.accountNumber &&
       (accountType === "savings" || accountType === "checking")
@@ -119,25 +107,20 @@ export const CreateAccount = asyncHandler(async (req, res, next) => {
   }
 });
 
-// Get all accounts for authenticated user with role-based filtering
 export const getAllAccount = asyncHandler(async (req, res, next) => {
   const userId = req.user;
   const { status, accountType, page = 1, limit = 10 } = req.query;
 
   try {
-    // Get user's complete profile with roles
     const userProfile = await RoleUserService.getUserCompleteProfile(userId);
 
-    // Build filter query based on user role
     const filter = await buildAccountFilterByRole(userId, userProfile.roles, {
       status,
       accountType,
     });
 
-    // Calculate pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    // Get accounts with pagination
     const accounts = await Account.find(filter)
       .select("-__v")
       .sort({ createdAt: -1 })
