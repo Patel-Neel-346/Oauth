@@ -121,82 +121,108 @@ export const GetLenderOffers = asyncHandler(async (req, res, next) => {
 
 //borrow's only
 export const ApplyForLoanController = asyncHandler(async (req, res, next) => {
-  const application = LoanApplicationServices.applyForLoan(req, next);
+  try {
+    const application = LoanApplicationServices.applyForLoan(req, next);
 
-  if (!application)
-    return next(
-      new ApiError(
-        400,
-        "Some Error occure During Creating Your Applications :("
-      )
-    );
+    if (!application)
+      return next(
+        new ApiError(
+          400,
+          "Some Error occure During Creating Your Applications :("
+        )
+      );
 
-  return res
-    .status(201)
-    .json(
-      new ApiRes(
-        201,
-        application,
-        "Your Application OF Loan Has been Created SuccessFully Wait For Approval :)"
-      )
-    );
+    return res
+      .status(201)
+      .json(
+        new ApiRes(
+          201,
+          application,
+          "Your Application OF Loan Has been Created SuccessFully Wait For Approval :)"
+        )
+      );
+  } catch (error) {
+    console.log(error);
+    return new ApiError(500, "Internel Server at Loan Controller");
+  }
 });
 
 //lender only
 export const LenderReviewApplicationController = asyncHandler(
   async (req, res, next) => {
-    const result = LoanApplicationServices.lenderReviewApplication(req, next);
+    try {
+      const result = LoanApplicationServices.lenderReviewApplication(req, next);
 
-    if (!result)
-      return next(
-        new ApiError(404, "There has been Error In Review Application for loan")
-      );
-    return res
-      .status(200)
-      .json(
-        new ApiRes(
-          200,
-          result,
-          "Your Application For loan Has been Approved SuccessFully By Lender :)"
-        )
-      );
+      if (!result)
+        return next(
+          new ApiError(
+            404,
+            "There has been Error In Review Application for loan"
+          )
+        );
+      return res
+        .status(200)
+        .json(
+          new ApiRes(
+            200,
+            result,
+            "Your Application For loan Has been Approved SuccessFully By Lender :)"
+          )
+        );
+    } catch (error) {
+      console.log(error);
+      return new ApiError(500, "Internel Server at Loan Controller");
+    }
   }
 );
 
 //admin only
 export const AdminFinalApprovalController = asyncHandler(
   async (req, res, next) => {
-    const result = LoanApplicationServices.adminFinalApproval(req, next);
-    if (!result)
-      return next(
-        new ApiError(404, "There has been Error In Review Application for loan")
-      );
-    return res
-      .status(200)
-      .json(
-        new ApiRes(
-          200,
-          result,
-          "Your Application For loan Has been Approved SuccessFully By Admin :)"
-        )
-      );
+    try {
+      const result = LoanApplicationServices.adminFinalApproval(req, next);
+      if (!result)
+        return next(
+          new ApiError(
+            404,
+            "There has been Error In Review Application for loan"
+          )
+        );
+      return res
+        .status(200)
+        .json(
+          new ApiRes(
+            200,
+            result,
+            "Your Application For loan Has been Approved SuccessFully By Admin :)"
+          )
+        );
+    } catch (error) {
+      console.log(error);
+      return new ApiError(500, "Internel Server at Loan Controller");
+    }
   }
 );
 
 //get Application based on Role's
 export const GetApplicationsController = asyncHandler(
   async (req, res, next) => {
-    const result = LoanApplicationServices.getApplications(req, next);
+    try {
+      const result = LoanApplicationServices.getApplications(req, next);
 
-    return res
-      .status(200)
-      .json(
-        new ApiRes(
-          200,
-          result,
-          "All the Application Has be Fetched SuccessFully :)"
-        )
-      );
+      return res
+        .status(200)
+        .json(
+          new ApiRes(
+            200,
+            result,
+            "All the Application Has be Fetched SuccessFully :)"
+          )
+        );
+    } catch (error) {
+      console.log(error);
+      return new ApiError(500, "Internel Server at Loan Controller");
+    }
   }
 );
 
