@@ -17,6 +17,8 @@ class P2PLoanService {
         .populate("borrowerId")
         .populate("lenderId");
 
+      console.log(application);
+
       if (!application) {
         throw new Error("Approved application not found");
       }

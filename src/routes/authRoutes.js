@@ -23,6 +23,7 @@ import {
   loginValidationRules,
   registerValidationRules,
 } from "../middleware/authValidator.js";
+import RoleUserService from "../utils/roleUserService.js";
 
 const AuthRouter = express.Router();
 
