@@ -16,7 +16,7 @@ import {
   updateUserAccountValidation,
   closeUserAccountValidation,
 } from "../middleware/accountValidation.js";
-import { ApiError } from "../utils/ApiError.js";
+// import { ApiError } from "../utils/ApiError.js";
 
 const AccountRoute = express.Router();
 

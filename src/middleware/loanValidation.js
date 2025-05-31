@@ -1,6 +1,6 @@
 // src/middleware/loanValidator.js
 import { body, param, query, validationResult } from "express-validator";
-import { ApiError } from "../utils/ApiError.js";
+import { ApiError } from "../helpers/ApiError.js";
 
 // Helper function to handle validation results
 const handleValidationErrors = (req, res, next) => {
