@@ -5,14 +5,6 @@ import { ApiError } from "../helpers/ApiError.js";
 import mongoose from "mongoose";
 
 class TransactionService {
-  /**
-   * Deposit funds to an account
-   * @param {string} accountId - Target account ID
-   * @param {number} amount - Deposit amount
-   * @param {string} description - Transaction description
-   * @param {object} metadata - Additional transaction data
-   * @returns {object} Transaction result
-   */
   static async depositFunds(
     accountId,
     amount,
@@ -69,14 +61,6 @@ class TransactionService {
     }
   }
 
-  /**
-   * Withdraw funds from an account
-   * @param {string} accountId - Source account ID
-   * @param {number} amount - Withdrawal amount
-   * @param {string} description - Transaction description
-   * @param {object} metadata - Additional transaction data
-   * @returns {object} Transaction result
-   */
   static async withdrawFunds(
     accountId,
     amount,
