@@ -49,9 +49,9 @@ class TransactionServiceV2 {
           "Deposit amount must be Greather Than Zero 0 :)"
         );
       }
-      console.log("AccountId:", accountId);
+      // console.log("AccountId:", accountId);
       const account = await Account.findById(accountId);
-      console.log(account);
+      // console.log(account);
       if (!account) {
         throw new ApiError(400, "Account Not Found");
       }
@@ -91,7 +91,7 @@ class TransactionServiceV2 {
         },
       };
     } catch (error) {
-      console.log("Got error at Transaction Deposit Service");
+      // console.log("Got error at Transaction Deposit Service");
       throw error;
     }
   }
@@ -149,7 +149,7 @@ class TransactionServiceV2 {
         },
       };
     } catch (error) {
-      console.log("WithDraw Error:", error);
+      // console.log("WithDraw Error:", error);
       throw error;
     }
   }
@@ -224,7 +224,7 @@ class TransactionServiceV2 {
         toAccount,
         amount
       );
-      console.log(tranferFee);
+      // console.log(tranferFee);
 
       const totalDeduction = amount + tranferFee;
 
@@ -290,7 +290,7 @@ class TransactionServiceV2 {
         tranferFee: tranferFee > 0 ? tranferFee : null,
       };
     } catch (error) {
-      console.log(`Transfer Money Error in Service`);
+      // console.log(`Transfer Money Error in Service`);
       throw error;
     }
   }
@@ -322,7 +322,7 @@ class TransactionServiceV2 {
         recentTransactions,
       };
     } catch (error) {
-      console.log(`get Account error in Services`);
+      // console.log(`get Account error in Services`);
       throw error;
     }
   }
@@ -361,7 +361,7 @@ class TransactionServiceV2 {
           query.amount.$lte = parseFloat(filters.amountMax);
       }
 
-      console.log(query);
+      // console.log(query);
 
       //cal pagination bro ;-;
 
@@ -396,7 +396,7 @@ class TransactionServiceV2 {
         summary,
       };
     } catch (error) {
-      console.log("getHistroy Error in Services ");
+      // console.log("getHistroy Error in Services ");
       throw error;
     }
   }
@@ -542,7 +542,7 @@ class TransactionServiceV2 {
 
       return result;
     } catch (error) {
-      console.log("Summary Error in services");
+      // console.log("Summary Error in services");
       throw error;
     }
   }

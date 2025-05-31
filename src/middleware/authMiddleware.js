@@ -40,7 +40,7 @@ export const googleAuth = (req, res, next) => {
     interestRatePersonal,
   } = req.query;
 
-  console.log("Google Auth - Query params:", req.query); // Debug log
+  // console.log("Google Auth - Query params:", req.query); // Debug log
 
   // Store role selection in session for later use in callback
   if (role && Object.values(ROLE_TYPES).includes(role.toUpperCase())) {
@@ -99,7 +99,7 @@ export const googleAuthCallback = (req, res, next) => {
           req.session.oauthProfileData?.interestRatePersonal || 5;
       }
 
-      console.log("Transferred to query:", req.query); // Debug log
+      // console.log("Transferred to query:", req.query); // Debug log
 
       // Clean up session
       delete req.session.oauthRole;
@@ -121,7 +121,7 @@ export const facebookAuth = (req, res, next) => {
     interestRatePersonal,
   } = req.query;
 
-  console.log("Facebook Auth - Query params:", req.query); // Debug log
+  // console.log("Facebook Auth - Query params:", req.query); // Debug log
 
   // Store role selection in session for later use in callback
   if (role && Object.values(ROLE_TYPES).includes(role.toUpperCase())) {
@@ -180,7 +180,7 @@ export const facebookAuthCallback = (req, res, next) => {
           req.session.oauthProfileData?.interestRatePersonal || 5;
       }
 
-      console.log("Transferred to query:", req.query); // Debug log
+      // console.log("Transferred to query:", req.query); // Debug log
 
       // Clean up session
       delete req.session.oauthRole;

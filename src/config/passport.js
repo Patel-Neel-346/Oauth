@@ -71,7 +71,7 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        console.log("Google Profile:", profile);
+        // console.log("Google Profile:", profile);
 
         // Check if user already exists with Google ID
         let user = await User.findOne({ googleId: profile.id });
@@ -128,7 +128,7 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        console.log("Facebook Profile:", profile);
+        // console.log("Facebook Profile:", profile);
 
         // Check if user already exists with Facebook ID
         let user = await User.findOne({ facebookId: profile.id });

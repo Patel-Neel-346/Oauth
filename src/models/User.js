@@ -76,7 +76,7 @@ UserSchema.pre("save", async function (next) {
   ) {
     const randomDigits = Math.floor(10000000 + Math.random() * 90000000);
     this.accountNumber = `ACC${randomDigits}`;
-    console.log(this.accountNumber);
+    // console.log(this.accountNumber);
   }
 
   next();

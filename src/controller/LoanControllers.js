@@ -9,7 +9,7 @@ import P2PLoanService from "../services/P2PLoanServiceV2.js";
 export const CreateLoanOffer = asyncHandler(async (req, res, next) => {
   try {
     const offer = await LoanOfferService.createLoanOfferService(req);
-    console.log(offer);
+    // console.log(offer);
 
     if (!offer) {
       return next(
@@ -322,7 +322,7 @@ export const makeLoanPayment = asyncHandler(async (req, res, next) => {
       return next(new ApiError(401, "User authentication required"));
     }
 
-    console.log("USERID:", req.user);
+    // console.log("USERID:", req.user);
 
     const result = await P2PLoanService.makeLoanPayment(
       loanId,

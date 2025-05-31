@@ -78,7 +78,7 @@ class LoanOfferService {
       .limit(limit * 1)
       .skip((page - 1) * limit);
 
-    console.log(offers);
+    // console.log(offers);
     const total = await LoanOffer.countDocuments(query);
 
     return {
@@ -121,7 +121,7 @@ class LoanOfferService {
     let query = { lenderId: userId };
 
     if (status) query.status = status;
-    console.log(query);
+    // console.log(query);
     const offer = await LoanOffer.find(query)
       .populate("applications")
       .sort({ createdAt: -1 })

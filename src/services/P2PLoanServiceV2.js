@@ -17,7 +17,7 @@ class P2PLoanService {
         .populate("borrowerId")
         .populate("lenderId");
 
-      console.log(application);
+      // console.log(application);
 
       if (!application) {
         throw new Error("Approved application not found");
@@ -29,14 +29,14 @@ class P2PLoanService {
         userId: application.borrowerId._id,
         status: "active",
       });
-      console.log(borrowerAccount);
+      // console.log(borrowerAccount);
 
       const lenderAccount = await Account.findOne({
         userId: application.lenderId._id,
         status: "active",
       });
 
-      console.log(lenderAccount);
+      // console.log(lenderAccount);
 
       if (!borrowerAccount || !lenderAccount) {
         throw new Error("Valid accounts not found");
@@ -132,7 +132,7 @@ class P2PLoanService {
         nextPaymentDate: p2pLoan.nextPaymentDate,
       };
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       throw new ApiError(500, "Internel Server Error At Disburse Loan Service");
     }
   }
@@ -140,14 +140,14 @@ class P2PLoanService {
   // Make loan payment
   static async makeLoanPayment(loanId, paymentAmount, accountId, userId) {
     try {
-      console.log(userId);
+      // console.log(userId);
       const loan = await P2PLoan.findOne({
         loanId,
         borrowerId: userId,
         status: "active",
       }).populate("lenderId");
 
-      console.log(loan);
+      // console.log(loan);
       if (!loan) {
         throw new Error("Active loan not found");
       }
@@ -158,7 +158,7 @@ class P2PLoanService {
         userId: userId,
         status: "active",
       });
-      console.log(borrowerAccount);
+      // console.log(borrowerAccount);
 
       if (!borrowerAccount || borrowerAccount.balance < paymentAmount) {
         throw new Error("Insufficient balance or invalid account");
@@ -252,7 +252,7 @@ class P2PLoanService {
         loanStatus: loan.status,
       };
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       throw new ApiError(500, "Internel Server Error At Disburse Loan Service");
     }
   }
@@ -270,19 +270,19 @@ class P2PLoanService {
 
       // Check if user has permission to view this loan
       const user = await User.findById(userId);
-      console.log(user);
+      // console.log(user);
       const canView =
         loan.borrowerId._id.equals(userId) ||
         loan.lenderId._id.equals(userId) ||
         user.roles.includes("admin");
-      console.log(canView);
+      // console.log(canView);
       if (!canView) {
         throw new Error("Access denied");
       }
 
       return loan;
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       throw new ApiError(500, "Internel Server Error At Disburse Loan Service");
     }
   }
@@ -322,7 +322,7 @@ class P2PLoanService {
         },
       };
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       throw new ApiError(500, "Internel Server Error At Disburse Loan Service");
     }
   }
@@ -396,7 +396,7 @@ class P2PLoanService {
         schedule,
       };
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       throw new ApiError(500, "Internel Server Error At Disburse Loan Service");
     }
   }
@@ -414,7 +414,7 @@ class P2PLoanService {
         .limit(limit * 1)
         .skip((page - 1) * limit);
 
-      console.log(overdueLoans);
+      // console.log(overdueLoans);
 
       // Calculate overdue days for each loan
       const loansWithOverdueDays = overdueLoans.map((loan) => {
@@ -442,7 +442,7 @@ class P2PLoanService {
         },
       };
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       throw new ApiError(500, "Internel Server Error At Disburse Loan Service");
     }
   }
@@ -512,7 +512,7 @@ class P2PLoanService {
 
       return analytics[0];
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       throw new ApiError(500, "Internel Server Error At Disburse Loan Service");
     }
   }

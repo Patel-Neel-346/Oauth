@@ -111,7 +111,7 @@ export const FilterDataOfClient = asyncHandler(async (req, res, next) => {
       }
     });
 
-    console.log("Applied filter criteria:", JSON.stringify(filterCriteria));
+    // console.log("Applied filter criteria:", JSON.stringify(filterCriteria));
 
     // Fetch filtered data with pagination
     const clients = await Data.find(filterCriteria).skip(skip).limit(limit);

@@ -13,7 +13,7 @@ class LoanApplicationServices {
       const checks = [];
       let allPassed = true;
 
-      console.log("Checking eligibility data:", borrowerProfile, criteria);
+      // console.log("Checking eligibility data:", borrowerProfile, criteria);
 
       if (criteria.minCreditScore) {
         const creditPassed =
@@ -233,8 +233,8 @@ class LoanApplicationServices {
       const lenderId =
         typeof req.user === "string" ? req.user : req.user._id || req.user.id;
 
-      console.log("Received Application ID:", applicationId);
-      console.log("Authenticated Lender ID:", lenderId);
+      // console.log("Received Application ID:", applicationId);
+      // console.log("Authenticated Lender ID:", lenderId);
 
       // Fixed the query - should use _id instead of applicationId
       const application = await LoanApplication.findOne({
@@ -243,7 +243,7 @@ class LoanApplicationServices {
         status: "pending",
       });
 
-      console.log("Fetched Application:", application);
+      // console.log("Fetched Application:", application);
 
       if (!application) {
         throw new ApiError(404, "Application not found or not accessible");
@@ -376,8 +376,8 @@ class LoanApplicationServices {
         throw new ApiError(403, "User role not found");
       }
 
-      console.log("User:", user);
-      console.log("User Role:", userRole);
+      // console.log("User:", user);
+      // console.log("User Role:", userRole);
 
       const query = {};
 
@@ -395,7 +395,7 @@ class LoanApplicationServices {
         query.status = status;
       }
 
-      console.log("Query:", query);
+      // console.log("Query:", query);
 
       // Use find() instead of findById() for multiple documents
       const applications = await LoanApplication.find(query)
@@ -406,7 +406,7 @@ class LoanApplicationServices {
         .limit(parseInt(limit))
         .skip((parseInt(page) - 1) * parseInt(limit));
 
-      console.log("Applications:", applications);
+      // console.log("Applications:", applications);
 
       const total = await LoanApplication.countDocuments(query);
 

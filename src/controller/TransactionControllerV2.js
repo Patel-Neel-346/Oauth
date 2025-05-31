@@ -12,7 +12,7 @@ export const DepositFunds = asyncHandler(async (req, res, next) => {
 
   try {
     const account = await Account.findOne({ accountNumber: accountNumber });
-    console.log(account._id.toString());
+    // console.log(account._id.toString());
 
     if (!account) {
       return next(new ApiError(404, "Account not Found :("));
@@ -77,7 +77,7 @@ export const TransferFunds = asyncHandler(async (req, res, next) => {
     const fromAccount = await Account.findOne({
       accountNumber: fromAccountNumber,
     });
-    console.log(fromAccount);
+    // console.log(fromAccount);
 
     if (!fromAccount) {
       return next(new ApiError(404, "Source account not found man :("));
@@ -86,7 +86,7 @@ export const TransferFunds = asyncHandler(async (req, res, next) => {
     const toAccount = await Account.findOne({
       accountNumber: toAccountNumber,
     });
-    console.log(toAccount);
+    // console.log(toAccount);
     if (!toAccount) {
       return next(new ApiError(404, "Destination account not Found man"));
     }
@@ -130,13 +130,13 @@ export const GetAccountBalance = asyncHandler(async (req, res, next) => {
   const { limit = 10 } = req.params || req.query;
 
   const userId = req.user;
-  console.log(userId);
+  // console.log(userId);
   try {
     const account = await Account.findOne({
       accountNumber: accountNumber,
       userId,
     });
-    console.log(account);
+    // console.log(account);
     if (!account) {
       return next(new ApiError(404, "Account not found bro :("));
     }
@@ -171,11 +171,11 @@ export const GetTransactionHistory = asyncHandler(async (req, res, next) => {
   const userId = req.user;
 
   try {
-    console.log(accountNumber);
+    // console.log(accountNumber);
     const account = await Account.findOne({
       accountNumber: accountNumber,
     });
-    console.log(account);
+    // console.log(account);
     if (!account) {
       return next(new ApiError(400, "Account does not exisits"));
     }
@@ -205,7 +205,7 @@ export const GetTransactionHistory = asyncHandler(async (req, res, next) => {
       limit
     );
 
-    console.log(result);
+    // console.log(result);
 
     return res
       .status(200)
