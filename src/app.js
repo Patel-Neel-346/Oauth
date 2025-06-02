@@ -5,7 +5,7 @@ import cookieParser from "cookie-parser";
 import AuthRouter from "./routes/authRoutes.js";
 import passport from "passport";
 import session from "express-session";
-import cors from "cors";
+// import cors from "cors";
 import "./config/passport.js";
 import swaggerDocs from "./config/swagger.js";
 import DataRouter from "./routes/dataRoutes.js";
@@ -13,18 +13,19 @@ import ClientRouter from "./routes/clientRoutes.js";
 import AccountRoute from "./routes/AccountRoutes.js";
 import TransactionRouter from "./routes/TransactionRoutes.js";
 import router from "./routes/LoanRoute.js";
+import StripeRouter from "./routes/Stripe_Router.js";
 
 const PORT = ConfigENV.PORT || 7000;
 const app = express();
 
 connectDb();
 
-app.use(
-  cors({
-    origin: ["http://localhost:5500", "http://127.0.0.1:5500"],
-    credentials: true,
-  })
-);
+// app.use(
+//   cors({
+//     origin: ["http://localhost:5500", "http://127.0.0.1:5500"],
+//     credentials: true,
+//   })
+// );
 
 app.use(express.static("public"));
 app.use(express.json({ limit: "50mb" }));
@@ -57,6 +58,7 @@ app.get("/", (req, res) => {
 });
 
 // Route definitions
+app.use("/Stripe", StripeRouter);
 app.use("/auth", AuthRouter);
 app.use("/api/v1/user", AuthRouter);
 app.use("/data", DataRouter);

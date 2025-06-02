@@ -1,7 +1,27 @@
-import mongoose from "mongoose";
+import express from "express";
+import {
+  getAllProducts,
+  createPaymentIntent,
+  confirmPayment,
+  handleWebhook,
+  getProductPurchases,
+} from "../controller/Stripe_Controller.js";
 
-const Product_Stripe_Schema = new mongoose.Schema({});
+const StripeRouter = express.Router();
 
-const Product = new mongoose.model("Product", Product_Stripe_Schema);
+// Product routes
+StripeRouter.get("/products", getAllProducts);
+StripeRouter.get("/products/:productId/purchases", getProductPurchases);
 
-export default Product;
+// Payment routes
+StripeRouter.post("/create-payment-intent", createPaymentIntent);
+StripeRouter.post("/confirm-payment", confirmPayment);
+
+// Webhook route (should be raw body, not JSON parsed)
+StripeRouter.post(
+  "/webhook",
+  express.raw({ type: "application/json" }),
+  handleWebhook
+);
+
+export default StripeRouter;

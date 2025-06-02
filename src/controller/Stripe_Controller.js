@@ -1,3 +1,220 @@
-import { asyncHandler } from "../helpers/asyncHandler";
+import Stripe from "stripe";
+import Product from "../models/Product.js";
+import { asyncHandler } from "../helpers/asyncHandler.js";
+import { ConfigENV } from "../config/index.js";
 
-export const StripePaymentController = asyncHandler(async (req, res) => {});
+const stripe = new Stripe(ConfigENV.STRIPE_SECRET_KEY);
+
+// Get all products
+export const getAllProducts = asyncHandler(async (req, res) => {
+  const products = await Product.find({ isActive: true }).select("-purchases");
+
+  res.status(200).json({
+    success: true,
+    products,
+  });
+});
+
+// Create payment intent
+export const createPaymentIntent = asyncHandler(async (req, res) => {
+  const { productId, quantity = 1, customerEmail } = req.body;
+
+  //   // Validate input
+  //   if (!productId || !customerEmail) {
+  //     return res.status(400).json({
+  //       success: false,
+  //       message: "Product ID and customer email are required",
+  //     });
+  //   }
+
+  //   // Find the product
+  //   const product = await Product.findById(productId);
+  //   if (!product) {
+  //     return res.status(404).json({
+  //       success: false,
+  //       message: "Product not found",
+  //     });
+  //   }
+
+  //   // Check stock
+  //   if (product.stock < quantity) {
+  //     return res.status(400).json({
+  //       success: false,
+  //       message: "Insufficient stock",
+  //     });
+  //   }
+
+  const amount = Math.round(product.price * quantity * 100); // Convert to cents
+
+  try {
+    // Create payment intent
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency: product.currency,
+      metadata: {
+        productId: productId,
+        productName: product.name,
+        quantity: quantity.toString(),
+        customerEmail,
+      },
+      receipt_email: customerEmail,
+    });
+
+    res.status(200).json({
+      success: true,
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
+    });
+  } catch (error) {
+    console.error("Stripe error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Payment processing error",
+    });
+  }
+});
+
+// Confirm payment and update product
+export const confirmPayment = asyncHandler(async (req, res) => {
+  const { paymentIntentId } = req.body;
+
+  if (!paymentIntentId) {
+    return res.status(400).json({
+      success: false,
+      message: "Payment Intent ID is required",
+    });
+  }
+
+  try {
+    // Retrieve payment intent from Stripe
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+    if (paymentIntent.status === "succeeded") {
+      const { productId, quantity, customerEmail } = paymentIntent.metadata;
+
+      // Update product with purchase information
+      const product = await Product.findById(productId);
+      if (product) {
+        // Add purchase record
+        product.purchases.push({
+          customerId: paymentIntent.customer || "guest",
+          customerEmail,
+          paymentIntentId,
+          amount: paymentIntent.amount,
+          currency: paymentIntent.currency,
+          status: "succeeded",
+          quantity: parseInt(quantity),
+        });
+
+        // Update stock
+        product.stock = Math.max(0, product.stock - parseInt(quantity));
+
+        await product.save();
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Payment confirmed successfully",
+        purchase: {
+          productName: paymentIntent.metadata.productName,
+          amount: paymentIntent.amount / 100,
+          currency: paymentIntent.currency,
+        },
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: "Payment not completed",
+      });
+    }
+  } catch (error) {
+    console.error("Payment confirmation error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error confirming payment",
+    });
+  }
+});
+
+// Webhook handler for Stripe events
+export const handleWebhook = asyncHandler(async (req, res) => {
+  const sig = req.headers["stripe-signature"];
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch (err) {
+    console.error("Webhook signature verification failed:", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // Handle the event
+  switch (event.type) {
+    case "payment_intent.succeeded":
+      const paymentIntent = event.data.object;
+      console.log("Payment succeeded:", paymentIntent.id);
+
+      // Update product purchase status
+      const { productId, quantity, customerEmail } = paymentIntent.metadata;
+      const product = await Product.findById(productId);
+
+      if (product) {
+        const purchaseIndex = product.purchases.findIndex(
+          (p) => p.paymentIntentId === paymentIntent.id
+        );
+        if (purchaseIndex > -1) {
+          product.purchases[purchaseIndex].status = "succeeded";
+          await product.save();
+        }
+      }
+      break;
+
+    case "payment_intent.payment_failed":
+      const failedPayment = event.data.object;
+      console.log("Payment failed:", failedPayment.id);
+
+      // Update product purchase status to failed
+      const failedProductId = failedPayment.metadata.productId;
+      const failedProduct = await Product.findById(failedProductId);
+
+      if (failedProduct) {
+        const failedPurchaseIndex = failedProduct.purchases.findIndex(
+          (p) => p.paymentIntentId === failedPayment.id
+        );
+        if (failedPurchaseIndex > -1) {
+          failedProduct.purchases[failedPurchaseIndex].status = "failed";
+          await failedProduct.save();
+        }
+      }
+      break;
+
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+  }
+
+  res.json({ received: true });
+});
+
+// Get purchase history for a product
+export const getProductPurchases = asyncHandler(async (req, res) => {
+  const { productId } = req.params;
+
+  const product = await Product.findById(productId).select("name purchases");
+
+  if (!product) {
+    return res.status(404).json({
+      success: false,
+      message: "Product not found",
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    productName: product.name,
+    purchases: product.purchases,
+  });
+});
