@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import Product from "../models/Product.js";
 import { asyncHandler } from "../helpers/asyncHandler.js";
 import { ConfigENV } from "../config/index.js";
-import PaymentTransactionService from "../services/PaymentTransactionService.js";
+import PaymentTransactionService from "../services/paymentTransactionService.js";
 import Account from "../models/Account.js";
 import { ApiError } from "../helpers/ApiError.js";
 
