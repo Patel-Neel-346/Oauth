@@ -1,7 +1,11 @@
+// src/controller/Stripe_Controller.js
 import Stripe from "stripe";
 import Product from "../models/Product.js";
 import { asyncHandler } from "../helpers/asyncHandler.js";
 import { ConfigENV } from "../config/index.js";
+import PaymentTransactionService from "../services/PaymentTransactionService.js";
+import Account from "../models/Account.js";
+import { ApiError } from "../helpers/ApiError.js";
 
 const stripe = new Stripe(ConfigENV.STRIPE_SECRET_KEY);
 
@@ -17,7 +21,8 @@ export const getAllProducts = asyncHandler(async (req, res) => {
 
 // Create payment intent
 export const createPaymentIntent = asyncHandler(async (req, res) => {
-  const { productId, quantity = 1, customerEmail } = req.body;
+  const { productId, quantity = 1, customerEmail, accountNumber } = req.body;
+  const userId = req.user; // From authentication middleware
 
   // Validate input
   if (!productId || !customerEmail) {
@@ -27,50 +32,62 @@ export const createPaymentIntent = asyncHandler(async (req, res) => {
     });
   }
 
-  // For demo purposes, since you're using sample data in frontend,
-  // we'll use hardcoded product data instead of database lookup
-  let product;
+  // Validate user's account if accountNumber provided
+  if (accountNumber) {
+    const userAccount = await Account.findOne({
+      accountNumber,
+      userId,
+      status: "active",
+    });
 
-  try {
-    // Use sample data for demo (since frontend uses simple IDs like "1", "2", "3")
-    const sampleProducts = {
-      1: {
-        name: "Premium Wireless Headphones",
-        price: 199.99,
-        currency: "usd",
-        stock: 15,
-      },
-      2: {
-        name: "Smart Fitness Watch",
-        price: 299.99,
-        currency: "usd",
-        stock: 8,
-      },
-      3: {
-        name: "Portable Bluetooth Speaker",
-        price: 79.99,
-        currency: "usd",
-        stock: 25,
-      },
-    };
-
-    product = sampleProducts[productId];
-
-    if (!product) {
+    if (!userAccount) {
       return res.status(404).json({
         success: false,
-        message: "Product not found",
+        message: "Account not found or inactive",
       });
     }
+  }
 
-    // Check stock
-    if (product.stock < quantity) {
-      return res.status(400).json({
-        success: false,
-        message: "Insufficient stock",
-      });
-    }
+  // Sample products (replace with your actual product logic)
+  const sampleProducts = {
+    1: {
+      name: "Premium Wireless Headphones",
+      price: 199.99,
+      currency: "usd",
+      stock: 15,
+    },
+    2: {
+      name: "Smart Fitness Watch",
+      price: 299.99,
+      currency: "usd",
+      stock: 8,
+    },
+    3: {
+      name: "Portable Bluetooth Speaker",
+      price: 79.99,
+      currency: "usd",
+      stock: 25,
+    },
+  };
 
+  const product = sampleProducts[productId];
+
+  if (!product) {
+    return res.status(404).json({
+      success: false,
+      message: "Product not found",
+    });
+  }
+
+  // Check stock
+  if (product.stock < quantity) {
+    return res.status(400).json({
+      success: false,
+      message: "Insufficient stock",
+    });
+  }
+
+  try {
     const amount = Math.round(product.price * quantity * 100); // Convert to cents
 
     // Create payment intent
@@ -82,6 +99,8 @@ export const createPaymentIntent = asyncHandler(async (req, res) => {
         productName: product.name,
         quantity: quantity.toString(),
         customerEmail,
+        userId: userId.toString(),
+        accountNumber: accountNumber || "",
       },
       receipt_email: customerEmail,
     });
@@ -101,9 +120,10 @@ export const createPaymentIntent = asyncHandler(async (req, res) => {
   }
 });
 
-// Confirm payment and update product
+// Confirm payment and create bank transaction
 export const confirmPayment = asyncHandler(async (req, res) => {
   const { paymentIntentId } = req.body;
+  const userId = req.user;
 
   if (!paymentIntentId) {
     return res.status(400).json({
@@ -117,24 +137,61 @@ export const confirmPayment = asyncHandler(async (req, res) => {
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
     if (paymentIntent.status === "succeeded") {
-      const { productId, quantity, customerEmail } = paymentIntent.metadata;
+      const { productId, quantity, customerEmail, accountNumber } =
+        paymentIntent.metadata;
 
-      // For demo purposes, we'll skip database updates since we're using sample data
-      // In a real application, you'd update the database here if using real MongoDB ObjectIds
+      // Create payment transaction in your banking system
+      try {
+        const paymentTransactionResult =
+          await PaymentTransactionService.processPaymentTransaction({
+            paymentIntentId: paymentIntent.id,
+            customerEmail,
+            amount: paymentIntent.amount / 100, // Convert back from cents
+            currency: paymentIntent.currency,
+            productId,
+            productName: paymentIntent.metadata.productName,
+            quantity,
+            userId,
+            paymentMethod: "stripe",
+            description: `Purchase: ${paymentIntent.metadata.productName}`,
+          });
 
-      console.log(
-        `Payment succeeded for product ${productId}, quantity: ${quantity}`
-      );
+        console.log(
+          `Payment transaction created: ${paymentTransactionResult.transaction._id}`
+        );
 
-      res.status(200).json({
-        success: true,
-        message: "Payment confirmed successfully",
-        purchase: {
-          productName: paymentIntent.metadata.productName,
-          amount: paymentIntent.amount / 100,
-          currency: paymentIntent.currency,
-        },
-      });
+        res.status(200).json({
+          success: true,
+          message: "Payment confirmed and transaction recorded successfully",
+          purchase: {
+            productName: paymentIntent.metadata.productName,
+            amount: paymentIntent.amount / 100,
+            currency: paymentIntent.currency,
+          },
+          bankTransaction: {
+            transactionId: paymentTransactionResult.transaction._id,
+            reference: paymentTransactionResult.transaction.reference,
+            customerAccount:
+              paymentTransactionResult.customerAccount.accountNumber,
+          },
+        });
+      } catch (bankError) {
+        console.error("Bank transaction error:", bankError);
+
+        // Payment succeeded in Stripe but bank transaction failed
+        // You might want to handle this scenario differently
+        res.status(200).json({
+          success: true,
+          message: "Payment confirmed but bank transaction recording failed",
+          warning: "Please contact support for transaction reconciliation",
+          purchase: {
+            productName: paymentIntent.metadata.productName,
+            amount: paymentIntent.amount / 100,
+            currency: paymentIntent.currency,
+          },
+          error: bankError.message,
+        });
+      }
     } else {
       res.status(400).json({
         success: false,
@@ -151,7 +208,7 @@ export const confirmPayment = asyncHandler(async (req, res) => {
   }
 });
 
-// Webhook handler for Stripe events
+// Enhanced webhook handler
 export const handleWebhook = asyncHandler(async (req, res) => {
   const sig = req.headers["stripe-signature"];
   let event;
@@ -173,38 +230,40 @@ export const handleWebhook = asyncHandler(async (req, res) => {
       const paymentIntent = event.data.object;
       console.log("Payment succeeded:", paymentIntent.id);
 
-      // Update product purchase status
-      const { productId, quantity, customerEmail } = paymentIntent.metadata;
-      const product = await Product.findById(productId);
+      try {
+        // Create bank transaction from webhook
+        const { userId, productId, productName, quantity, customerEmail } =
+          paymentIntent.metadata;
 
-      if (product) {
-        const purchaseIndex = product.purchases.findIndex(
-          (p) => p.paymentIntentId === paymentIntent.id
-        );
-        if (purchaseIndex > -1) {
-          product.purchases[purchaseIndex].status = "succeeded";
-          await product.save();
+        if (userId) {
+          await PaymentTransactionService.processPaymentTransaction({
+            paymentIntentId: paymentIntent.id,
+            customerEmail,
+            amount: paymentIntent.amount / 100,
+            currency: paymentIntent.currency,
+            productId,
+            productName,
+            quantity,
+            userId,
+            paymentMethod: "stripe",
+            description: `Webhook: Purchase ${productName}`,
+          });
         }
+      } catch (error) {
+        console.error("Webhook payment transaction error:", error);
       }
       break;
 
     case "payment_intent.payment_failed":
       const failedPayment = event.data.object;
       console.log("Payment failed:", failedPayment.id);
+      // Handle failed payments if needed
+      break;
 
-      // Update product purchase status to failed
-      const failedProductId = failedPayment.metadata.productId;
-      const failedProduct = await Product.findById(failedProductId);
-
-      if (failedProduct) {
-        const failedPurchaseIndex = failedProduct.purchases.findIndex(
-          (p) => p.paymentIntentId === failedPayment.id
-        );
-        if (failedPurchaseIndex > -1) {
-          failedProduct.purchases[failedPurchaseIndex].status = "failed";
-          await failedProduct.save();
-        }
-      }
+    case "charge.dispute.created":
+      const dispute = event.data.object;
+      console.log("Dispute created:", dispute.id);
+      // Handle disputes if needed
       break;
 
     default:
@@ -212,6 +271,143 @@ export const handleWebhook = asyncHandler(async (req, res) => {
   }
 
   res.json({ received: true });
+});
+
+// Get payment history for authenticated user
+export const getPaymentHistory = asyncHandler(async (req, res) => {
+  const userId = req.user;
+  const {
+    page = 1,
+    limit = 10,
+    type,
+    dateFrom,
+    dateTo,
+    amountMin,
+    amountMax,
+  } = req.query;
+
+  try {
+    const filters = {};
+    if (type) filters.type = type;
+    if (dateFrom) filters.dateFrom = dateFrom;
+    if (dateTo) filters.dateTo = dateTo;
+    if (amountMin) filters.amountMin = amountMin;
+    if (amountMax) filters.amountMax = amountMax;
+
+    const result = await PaymentTransactionService.getPaymentHistory(
+      userId,
+      filters,
+      parseInt(page),
+      parseInt(limit)
+    );
+
+    res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    console.error("Payment history error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error retrieving payment history",
+      error: error.message,
+    });
+  }
+});
+
+// Get payment statistics for authenticated user
+export const getPaymentStatistics = asyncHandler(async (req, res) => {
+  const userId = req.user;
+  const { period = "month" } = req.query;
+
+  try {
+    const result = await PaymentTransactionService.getPaymentStatistics(
+      userId,
+      period
+    );
+
+    res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    console.error("Payment statistics error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error retrieving payment statistics",
+      error: error.message,
+    });
+  }
+});
+
+// Process refund
+export const processRefund = asyncHandler(async (req, res) => {
+  const { paymentIntentId, amount, reason } = req.body;
+  const userId = req.user;
+
+  if (!paymentIntentId) {
+    return res.status(400).json({
+      success: false,
+      message: "Payment Intent ID is required",
+    });
+  }
+
+  try {
+    // Create refund in Stripe
+    const refund = await stripe.refunds.create({
+      payment_intent: paymentIntentId,
+      amount: amount ? Math.round(amount * 100) : undefined, // Convert to cents if partial refund
+      reason: reason || "requested_by_customer",
+    });
+
+    // Create refund transaction in banking system
+    try {
+      const refundTransactionResult =
+        await PaymentTransactionService.processRefundTransaction({
+          originalPaymentIntentId: paymentIntentId,
+          refundId: refund.id,
+          amount: refund.amount / 100, // Convert back from cents
+          reason: reason || "Customer requested refund",
+          userId,
+        });
+
+      res.status(200).json({
+        success: true,
+        message: "Refund processed successfully",
+        refund: {
+          id: refund.id,
+          amount: refund.amount / 100,
+          status: refund.status,
+        },
+        bankTransaction: {
+          transactionId: refundTransactionResult.refundTransaction._id,
+          reference: refundTransactionResult.refundTransaction.reference,
+        },
+      });
+    } catch (bankError) {
+      console.error("Bank refund transaction error:", bankError);
+
+      res.status(200).json({
+        success: true,
+        message:
+          "Refund processed in Stripe but bank transaction recording failed",
+        warning: "Please contact support for transaction reconciliation",
+        refund: {
+          id: refund.id,
+          amount: refund.amount / 100,
+          status: refund.status,
+        },
+        error: bankError.message,
+      });
+    }
+  } catch (error) {
+    console.error("Refund processing error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error processing refund",
+      error: error.message,
+    });
+  }
 });
 
 // Get purchase history for a product
