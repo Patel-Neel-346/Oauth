@@ -19,34 +19,60 @@ export const getAllProducts = asyncHandler(async (req, res) => {
 export const createPaymentIntent = asyncHandler(async (req, res) => {
   const { productId, quantity = 1, customerEmail } = req.body;
 
-  //   // Validate input
-  //   if (!productId || !customerEmail) {
-  //     return res.status(400).json({
-  //       success: false,
-  //       message: "Product ID and customer email are required",
-  //     });
-  //   }
+  // Validate input
+  if (!productId || !customerEmail) {
+    return res.status(400).json({
+      success: false,
+      message: "Product ID and customer email are required",
+    });
+  }
 
-  //   // Find the product
-  //   const product = await Product.findById(productId);
-  //   if (!product) {
-  //     return res.status(404).json({
-  //       success: false,
-  //       message: "Product not found",
-  //     });
-  //   }
-
-  //   // Check stock
-  //   if (product.stock < quantity) {
-  //     return res.status(400).json({
-  //       success: false,
-  //       message: "Insufficient stock",
-  //     });
-  //   }
-
-  const amount = Math.round(product.price * quantity * 100); // Convert to cents
+  // For demo purposes, since you're using sample data in frontend,
+  // we'll use hardcoded product data instead of database lookup
+  let product;
 
   try {
+    // Use sample data for demo (since frontend uses simple IDs like "1", "2", "3")
+    const sampleProducts = {
+      1: {
+        name: "Premium Wireless Headphones",
+        price: 199.99,
+        currency: "usd",
+        stock: 15,
+      },
+      2: {
+        name: "Smart Fitness Watch",
+        price: 299.99,
+        currency: "usd",
+        stock: 8,
+      },
+      3: {
+        name: "Portable Bluetooth Speaker",
+        price: 79.99,
+        currency: "usd",
+        stock: 25,
+      },
+    };
+
+    product = sampleProducts[productId];
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    // Check stock
+    if (product.stock < quantity) {
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient stock",
+      });
+    }
+
+    const amount = Math.round(product.price * quantity * 100); // Convert to cents
+
     // Create payment intent
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
@@ -70,6 +96,7 @@ export const createPaymentIntent = asyncHandler(async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Payment processing error",
+      error: error.message,
     });
   }
 });
@@ -92,25 +119,12 @@ export const confirmPayment = asyncHandler(async (req, res) => {
     if (paymentIntent.status === "succeeded") {
       const { productId, quantity, customerEmail } = paymentIntent.metadata;
 
-      // Update product with purchase information
-      const product = await Product.findById(productId);
-      if (product) {
-        // Add purchase record
-        product.purchases.push({
-          customerId: paymentIntent.customer || "guest",
-          customerEmail,
-          paymentIntentId,
-          amount: paymentIntent.amount,
-          currency: paymentIntent.currency,
-          status: "succeeded",
-          quantity: parseInt(quantity),
-        });
+      // For demo purposes, we'll skip database updates since we're using sample data
+      // In a real application, you'd update the database here if using real MongoDB ObjectIds
 
-        // Update stock
-        product.stock = Math.max(0, product.stock - parseInt(quantity));
-
-        await product.save();
-      }
+      console.log(
+        `Payment succeeded for product ${productId}, quantity: ${quantity}`
+      );
 
       res.status(200).json({
         success: true,
@@ -132,6 +146,7 @@ export const confirmPayment = asyncHandler(async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error confirming payment",
+      error: error.message,
     });
   }
 });

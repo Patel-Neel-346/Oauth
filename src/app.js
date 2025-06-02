@@ -5,7 +5,7 @@ import cookieParser from "cookie-parser";
 import AuthRouter from "./routes/authRoutes.js";
 import passport from "passport";
 import session from "express-session";
-// import cors from "cors";
+import cors from "cors";
 import "./config/passport.js";
 import swaggerDocs from "./config/swagger.js";
 import DataRouter from "./routes/dataRoutes.js";
@@ -20,12 +20,20 @@ const app = express();
 
 connectDb();
 
-// app.use(
-//   cors({
-//     origin: ["http://localhost:5500", "http://127.0.0.1:5500"],
-//     credentials: true,
-//   })
-// );
+// Enable CORS for your frontend
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5500",
+      "http://127.0.0.1:5500",
+      "http://localhost:3000", // Add more origins if needed
+      "http://127.0.0.1:3000",
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  })
+);
 
 app.use(express.static("public"));
 app.use(express.json({ limit: "50mb" }));
