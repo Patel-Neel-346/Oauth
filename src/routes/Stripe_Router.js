@@ -1,27 +1,33 @@
 import express from "express";
 import {
-  getAllProducts,
   createPaymentIntent,
-  confirmPayment,
-  handleWebhook,
-  getProductPurchases,
-} from "../controller/Stripe_Controller.js";
+  processPayment,
+  handleStripeWebhook,
+  refundPayment,
+  getPaymentDetails,
+  getStripePaymentHistory,
+} from "../controller/StripeV2.js";
+import { Authenticated } from "../middleware/authMiddleware.js"; // Assuming you have auth middleware
 
 const StripeRouter = express.Router();
 
-// Product routes
-StripeRouter.get("/products", getAllProducts);
-StripeRouter.get("/products/:productId/purchases", getProductPurchases);
-
-// Payment routes
-StripeRouter.post("/create-payment-intent", createPaymentIntent);
-StripeRouter.post("/confirm-payment", confirmPayment);
-
-// Webhook route (should be raw body, not JSON parsed)
+// Public webhook endpoint (no auth required)
 StripeRouter.post(
   "/webhook",
   express.raw({ type: "application/json" }),
-  handleWebhook
+  handleStripeWebhook
 );
+
+// Protected routes (require authentication)
+StripeRouter.use(Authenticated); // Apply authentication to all routes below
+
+// Payment routes
+StripeRouter.post("/create-payment-intent", createPaymentIntent);
+StripeRouter.post("/process-payment", processPayment);
+StripeRouter.post("/refund", refundPayment);
+
+// Payment information routes
+StripeRouter.get("/payment/:paymentIntentId", getPaymentDetails);
+StripeRouter.get("/history", getStripePaymentHistory);
 
 export default StripeRouter;
