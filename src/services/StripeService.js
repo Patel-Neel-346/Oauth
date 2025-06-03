@@ -15,6 +15,308 @@ class StripeService {
   // Add these methods to your existing StripeService.js
 
   /**
+   * Create payment method using test tokens (for testing)
+   * @param {Object} tokenData - Token information
+   * @param {string} customerId - Stripe customer ID
+   * @returns {Object} Payment method details
+   */
+  async createPaymentMethodFromTestToken(tokenData, customerId = null) {
+    try {
+      const { token, billing_details } = tokenData;
+
+      // Create payment method from token
+      const paymentMethod = await this.stripe.paymentMethods.create({
+        type: "card",
+        card: {
+          token: token, // Use test tokens like 'tok_visa', 'tok_mastercard', etc.
+        },
+        billing_details: billing_details || {},
+      });
+
+      // Attach to customer if provided
+      if (customerId) {
+        await this.stripe.paymentMethods.attach(paymentMethod.id, {
+          customer: customerId,
+        });
+      }
+
+      return {
+        success: true,
+        paymentMethod: {
+          id: paymentMethod.id,
+          type: paymentMethod.type,
+          card: {
+            brand: paymentMethod.card.brand,
+            last4: paymentMethod.card.last4,
+            exp_month: paymentMethod.card.exp_month,
+            exp_year: paymentMethod.card.exp_year,
+            funding: paymentMethod.card.funding,
+          },
+          billing_details: paymentMethod.billing_details,
+        },
+        message: "Payment method created from token successfully",
+      };
+    } catch (error) {
+      throw new ApiError(
+        500,
+        `Payment method creation failed: ${error.message}`
+      );
+    }
+  }
+  /**
+   * Create payment method using Sources API (Legacy but works for backend)
+   * @param {Object} cardData - Card information
+   * @param {string} customerId - Stripe customer ID
+   * @returns {Object} Payment method details
+   */
+  async createPaymentMethodFromSource(cardData, customerId = null) {
+    try {
+      const { number, exp_month, exp_year, cvc, name, email } = cardData;
+
+      // First create a source
+      const source = await this.stripe.sources.create({
+        type: "card",
+        card: {
+          number,
+          exp_month,
+          exp_year,
+          cvc,
+          name,
+        },
+        owner: {
+          email,
+          name,
+        },
+      });
+
+      // Then create a payment method from the source
+      const paymentMethod = await this.stripe.paymentMethods.create({
+        type: "card",
+        card: {
+          token: source.id,
+        },
+      });
+
+      // Attach to customer if provided
+      if (customerId) {
+        await this.stripe.paymentMethods.attach(paymentMethod.id, {
+          customer: customerId,
+        });
+      }
+
+      return {
+        success: true,
+        paymentMethod: {
+          id: paymentMethod.id,
+          type: paymentMethod.type,
+          card: {
+            brand: paymentMethod.card.brand,
+            last4: paymentMethod.card.last4,
+            exp_month: paymentMethod.card.exp_month,
+            exp_year: paymentMethod.card.exp_year,
+            funding: paymentMethod.card.funding,
+          },
+        },
+        source: {
+          id: source.id,
+          status: source.status,
+        },
+        message: "Payment method created from source successfully",
+      };
+    } catch (error) {
+      throw new ApiError(
+        500,
+        `Payment method creation failed: ${error.message}`
+      );
+    }
+  }
+
+  /**
+   * Enable raw card data (requires special Stripe configuration)
+   * Note: This requires enabling raw card data APIs in your Stripe dashboard
+   * @param {Object} cardData - Card information
+   * @param {string} customerId - Stripe customer ID
+   * @returns {Object} Payment method details
+   */
+  async createPaymentMethodRawCard(cardData, customerId = null) {
+    try {
+      const { number, exp_month, exp_year, cvc, name, email, phone } = cardData;
+
+      // This will only work if raw card data APIs are enabled
+      const paymentMethod = await this.stripe.paymentMethods.create({
+        type: "card",
+        card: {
+          number,
+          exp_month,
+          exp_year,
+          cvc,
+        },
+        billing_details: {
+          name,
+          email,
+          phone,
+        },
+      });
+
+      // Attach to customer if provided
+      if (customerId) {
+        await this.stripe.paymentMethods.attach(paymentMethod.id, {
+          customer: customerId,
+        });
+      }
+
+      return {
+        success: true,
+        paymentMethod: {
+          id: paymentMethod.id,
+          type: paymentMethod.type,
+          card: {
+            brand: paymentMethod.card.brand,
+            last4: paymentMethod.card.last4,
+            exp_month: paymentMethod.card.exp_month,
+            exp_year: paymentMethod.card.exp_year,
+            funding: paymentMethod.card.funding,
+          },
+          billing_details: paymentMethod.billing_details,
+        },
+        message: "Payment method created successfully",
+      };
+    } catch (error) {
+      throw new ApiError(
+        500,
+        `Payment method creation failed: ${error.message}`
+      );
+    }
+  }
+
+  /**
+   * Get test tokens for different card types
+   * @returns {Object} Available test tokens
+   */
+  getTestTokens() {
+    return {
+      visa: "tok_visa",
+      visa_debit: "tok_visa_debit",
+      mastercard: "tok_mastercard",
+      mastercard_debit: "tok_mastercard_debit",
+      amex: "tok_amex",
+      discover: "tok_discover",
+      jcb: "tok_jcb",
+      diners: "tok_diners",
+      // Specific test scenarios
+      declined_card: "tok_chargeDeclined",
+      insufficient_funds: "tok_chargeDeclinedInsufficientFunds",
+      lost_card: "tok_chargeDeclinedLostCard",
+      stolen_card: "tok_chargeDeclinedStolenCard",
+      expired_card: "tok_chargeDeclinedExpiredCard",
+      incorrect_cvc: "tok_chargeDeclinedIncorrectCvc",
+      processing_error: "tok_chargeDeclinedProcessingError",
+    };
+  }
+
+  async createOrGetCustomer(userData, userId) {
+    try {
+      const { email, name, phone } = userData;
+
+      const existingCustomers = await this.stripe.customers.list({
+        email: email,
+        limit: 1,
+      });
+
+      if (existingCustomers.data.length > 0) {
+        return existingCustomers.data[0];
+      }
+
+      const customer = await this.stripe.customers.create({
+        email,
+        name,
+        phone,
+        metadata: {
+          internal_user_id: userId,
+          created_via: "bank_management_system",
+        },
+      });
+
+      return customer;
+    } catch (error) {
+      throw new ApiError(
+        500,
+        `Failed to create/retrieve Stripe customer: ${error.message}`
+      );
+    }
+  }
+
+  async getCustomerPaymentMethods(customerId) {
+    try {
+      const paymentMethods = await this.stripe.paymentMethods.list({
+        customer: customerId,
+        type: "card",
+      });
+
+      return {
+        success: true,
+        paymentMethods: paymentMethods.data.map((pm) => ({
+          id: pm.id,
+          type: pm.type,
+          card: {
+            brand: pm.card.brand,
+            last4: pm.card.last4,
+            exp_month: pm.card.exp_month,
+            exp_year: pm.card.exp_year,
+            funding: pm.card.funding,
+          },
+          billing_details: pm.billing_details,
+          created: new Date(pm.created * 1000),
+        })),
+        message: "Payment methods retrieved successfully",
+      };
+    } catch (error) {
+      throw new ApiError(
+        500,
+        `Failed to retrieve payment methods: ${error.message}`
+      );
+    }
+  }
+
+  async deletePaymentMethod(paymentMethodId) {
+    try {
+      const paymentMethod = await this.stripe.paymentMethods.detach(
+        paymentMethodId
+      );
+
+      return {
+        success: true,
+        message: "Payment method deleted successfully",
+        paymentMethodId: paymentMethod.id,
+      };
+    } catch (error) {
+      throw new ApiError(
+        500,
+        `Payment method deletion failed: ${error.message}`
+      );
+    }
+  }
+
+  async updatePaymentMethod(paymentMethodId, billingDetails) {
+    try {
+      const paymentMethod = await this.stripe.paymentMethods.update(
+        paymentMethodId,
+        { billing_details: billingDetails }
+      );
+
+      return {
+        success: true,
+        paymentMethod: {
+          id: paymentMethod.id,
+          billing_details: paymentMethod.billing_details,
+        },
+        message: "Payment method updated successfully",
+      };
+    } catch (error) {
+      throw new ApiError(500, `Payment method update failed: ${error.message}`);
+    }
+  }
+  /**
    * Create a payment method from card details
    * @param {Object} cardData - Card information
    * @param {string} customerId - Stripe customer ID

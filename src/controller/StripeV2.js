@@ -68,6 +68,172 @@ export const createPaymentIntent = asyncHandler(async (req, res, next) => {
   }
 });
 
+// Add these methods to your StripeV2.js controller
+
+/**
+ * Create a new payment method
+ */
+export const createPaymentMethod = asyncHandler(async (req, res, next) => {
+  const { cardNumber, expMonth, expYear, cvc, name, email, phone } = req.body;
+  const userId = req.user;
+
+  try {
+    if (!cardNumber || !expMonth || !expYear || !cvc) {
+      return next(new ApiError(400, "Card details are required"));
+    }
+
+    // Get user details
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(new ApiError(404, "User not found"));
+    }
+
+    // Create or get customer
+    const customerData = {
+      email: email || user.email,
+      name: name || user.name || `${user.firstName} ${user.lastName}`,
+      phone: phone || user.phone,
+    };
+
+    const customer = await stripeService.createOrGetCustomer(
+      customerData,
+      userId
+    );
+
+    // Create payment method
+    const cardData = {
+      number: cardNumber,
+      exp_month: parseInt(expMonth),
+      exp_year: parseInt(expYear),
+      cvc,
+      name: customerData.name,
+      email: customerData.email,
+      phone: customerData.phone,
+    };
+
+    const result = await stripeService.createPaymentMethod(
+      cardData,
+      customer.id
+    );
+
+    return res
+      .status(200)
+      .json(new ApiRes(200, result, "Payment method created successfully"));
+  } catch (error) {
+    console.log("Create Payment Method Error:", error);
+    return next(
+      new ApiError(500, `Payment method creation failed: ${error.message}`)
+    );
+  }
+});
+
+/**
+ * Get user's saved payment methods
+ */
+export const getUserPaymentMethods = asyncHandler(async (req, res, next) => {
+  const userId = req.user;
+
+  try {
+    // Get user details
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(new ApiError(404, "User not found"));
+    }
+
+    // Find existing customer
+    const existingCustomers = await stripeService.stripe.customers.list({
+      email: user.email,
+      limit: 1,
+    });
+
+    if (existingCustomers.data.length === 0) {
+      return res
+        .status(200)
+        .json(
+          new ApiRes(200, { paymentMethods: [] }, "No payment methods found")
+        );
+    }
+
+    const customer = existingCustomers.data[0];
+    const result = await stripeService.getCustomerPaymentMethods(customer.id);
+
+    return res
+      .status(200)
+      .json(new ApiRes(200, result, "Payment methods retrieved successfully"));
+  } catch (error) {
+    console.log("Get Payment Methods Error:", error);
+    return next(
+      new ApiError(500, `Failed to retrieve payment methods: ${error.message}`)
+    );
+  }
+});
+
+/**
+ * Delete a payment method
+ */
+export const deletePaymentMethod = asyncHandler(async (req, res, next) => {
+  const { paymentMethodId } = req.params;
+  const userId = req.user;
+
+  try {
+    if (!paymentMethodId) {
+      return next(new ApiError(400, "Payment method ID is required"));
+    }
+
+    // Verify the payment method belongs to this user (security check)
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(new ApiError(404, "User not found"));
+    }
+
+    const result = await stripeService.deletePaymentMethod(paymentMethodId);
+
+    return res
+      .status(200)
+      .json(new ApiRes(200, result, "Payment method deleted successfully"));
+  } catch (error) {
+    console.log("Delete Payment Method Error:", error);
+    return next(
+      new ApiError(500, `Payment method deletion failed: ${error.message}`)
+    );
+  }
+});
+
+/**
+ * Update payment method billing details
+ */
+export const updatePaymentMethod = asyncHandler(async (req, res, next) => {
+  const { paymentMethodId } = req.params;
+  const { name, email, phone, address } = req.body;
+  const userId = req.user;
+
+  try {
+    if (!paymentMethodId) {
+      return next(new ApiError(400, "Payment method ID is required"));
+    }
+
+    const billingDetails = {};
+    if (name) billingDetails.name = name;
+    if (email) billingDetails.email = email;
+    if (phone) billingDetails.phone = phone;
+    if (address) billingDetails.address = address;
+
+    const result = await stripeService.updatePaymentMethod(
+      paymentMethodId,
+      billingDetails
+    );
+
+    return res
+      .status(200)
+      .json(new ApiRes(200, result, "Payment method updated successfully"));
+  } catch (error) {
+    console.log("Update Payment Method Error:", error);
+    return next(
+      new ApiError(500, `Payment method update failed: ${error.message}`)
+    );
+  }
+});
+
 /**
  * Process a direct payment
  */
@@ -134,6 +300,188 @@ export const processPayment = asyncHandler(async (req, res, next) => {
     );
   }
 });
+
+export const createPaymentMethodFromToken = asyncHandler(
+  async (req, res, next) => {
+    const { token, billing_details } = req.body;
+    const userId = req.user;
+
+    try {
+      if (!token) {
+        return next(new ApiError(400, "Token is required"));
+      }
+
+      // Get user details for Stripe customer
+      const user = await User.findById(userId);
+      if (!user) {
+        return next(new ApiError(404, "User not found"));
+      }
+
+      // Create or get customer
+      const customer = await stripeService.createOrGetCustomer(
+        {
+          email: user.email,
+          name: user.name || `${user.firstName} ${user.lastName}`,
+          phone: user.phone,
+        },
+        userId
+      );
+
+      const result = await stripeService.createPaymentMethodFromTestToken(
+        { token, billing_details },
+        customer.id
+      );
+
+      return res
+        .status(200)
+        .json(new ApiRes(200, result, "Payment method created successfully"));
+    } catch (error) {
+      console.log("Create Payment Method Error:", error);
+      return next(
+        new ApiError(500, `Payment method creation failed: ${error.message}`)
+      );
+    }
+  }
+);
+
+/**
+ * Create a payment method using card details (Sources API)
+ */
+export const createPaymentMethodFromCard = asyncHandler(
+  async (req, res, next) => {
+    const { number, exp_month, exp_year, cvc, name, email } = req.body;
+    const userId = req.user;
+
+    try {
+      if (!number || !exp_month || !exp_year || !cvc) {
+        return next(new ApiError(400, "Card details are required"));
+      }
+
+      // Get user details
+      const user = await User.findById(userId);
+      if (!user) {
+        return next(new ApiError(404, "User not found"));
+      }
+
+      // Create or get customer
+      const customer = await stripeService.createOrGetCustomer(
+        {
+          email: user.email,
+          name: user.name || `${user.firstName} ${user.lastName}`,
+          phone: user.phone,
+        },
+        userId
+      );
+
+      const cardData = {
+        number,
+        exp_month: parseInt(exp_month),
+        exp_year: parseInt(exp_year),
+        cvc,
+        name: name || user.name || `${user.firstName} ${user.lastName}`,
+        email: email || user.email,
+      };
+
+      const result = await stripeService.createPaymentMethodFromSource(
+        cardData,
+        customer.id
+      );
+
+      return res
+        .status(200)
+        .json(new ApiRes(200, result, "Payment method created successfully"));
+    } catch (error) {
+      console.log("Create Payment Method Error:", error);
+      return next(
+        new ApiError(500, `Payment method creation failed: ${error.message}`)
+      );
+    }
+  }
+);
+
+/**
+ * Create a payment method using raw card data (requires special Stripe configuration)
+ */
+export const createPaymentMethodRawCard = asyncHandler(
+  async (req, res, next) => {
+    const { number, exp_month, exp_year, cvc, name, email, phone } = req.body;
+    const userId = req.user;
+
+    try {
+      if (!number || !exp_month || !exp_year || !cvc) {
+        return next(new ApiError(400, "Card details are required"));
+      }
+
+      // Get user details
+      const user = await User.findById(userId);
+      if (!user) {
+        return next(new ApiError(404, "User not found"));
+      }
+
+      // Create or get customer
+      const customer = await stripeService.createOrGetCustomer(
+        {
+          email: user.email,
+          name: user.name || `${user.firstName} ${user.lastName}`,
+          phone: user.phone,
+        },
+        userId
+      );
+
+      const cardData = {
+        number,
+        exp_month: parseInt(exp_month),
+        exp_year: parseInt(exp_year),
+        cvc,
+        name: name || user.name || `${user.firstName} ${user.lastName}`,
+        email: email || user.email,
+        phone: phone || user.phone,
+      };
+
+      const result = await stripeService.createPaymentMethodRawCard(
+        cardData,
+        customer.id
+      );
+
+      return res
+        .status(200)
+        .json(new ApiRes(200, result, "Payment method created successfully"));
+    } catch (error) {
+      console.log("Create Payment Method Error:", error);
+      return next(
+        new ApiError(500, `Payment method creation failed: ${error.message}`)
+      );
+    }
+  }
+);
+
+/**
+ * Get available test tokens
+ */
+export const getTestTokens = asyncHandler(async (req, res, next) => {
+  try {
+    const tokens = stripeService.getTestTokens();
+    return res
+      .status(200)
+      .json(new ApiRes(200, tokens, "Test tokens retrieved successfully"));
+  } catch (error) {
+    return next(
+      new ApiError(500, `Failed to get test tokens: ${error.message}`)
+    );
+  }
+});
+
+/**
+ * Get user's payment methods
+ */
+
+/**
+ * Delete a payment method
+ */
+
+/**
+ * Update payment method billing details
+ */
 
 /**
  * Handle Stripe webhooks

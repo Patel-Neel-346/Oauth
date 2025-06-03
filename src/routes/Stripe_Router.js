@@ -6,8 +6,11 @@ import {
   refundPayment,
   getPaymentDetails,
   getStripePaymentHistory,
-  // Add these new imports
-  createPaymentMethod,
+  // New payment method imports
+  createPaymentMethodFromToken,
+  createPaymentMethodFromCard,
+  createPaymentMethodRawCard,
+  getTestTokens,
   getUserPaymentMethods,
   deletePaymentMethod,
   updatePaymentMethod,
@@ -23,6 +26,9 @@ StripeRouter.post(
   handleStripeWebhook
 );
 
+// Public test tokens endpoint (for development)
+StripeRouter.get("/test-tokens", getTestTokens);
+
 // Protected routes (require authentication)
 StripeRouter.use(Authenticated);
 
@@ -35,8 +41,10 @@ StripeRouter.post("/refund", refundPayment);
 StripeRouter.get("/payment/:paymentIntentId", getPaymentDetails);
 StripeRouter.get("/history", getStripePaymentHistory);
 
-// Payment Methods routes
-StripeRouter.post("/payment-methods", createPaymentMethod);
+// Payment Methods routes - Multiple approaches
+StripeRouter.post("/payment-methods/from-token", createPaymentMethodFromToken);
+StripeRouter.post("/payment-methods/from-card", createPaymentMethodFromCard);
+StripeRouter.post("/payment-methods/raw-card", createPaymentMethodRawCard);
 StripeRouter.get("/payment-methods", getUserPaymentMethods);
 StripeRouter.delete("/payment-methods/:paymentMethodId", deletePaymentMethod);
 StripeRouter.put("/payment-methods/:paymentMethodId", updatePaymentMethod);
