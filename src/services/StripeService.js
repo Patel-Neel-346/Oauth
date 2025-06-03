@@ -12,6 +12,151 @@ class StripeService {
     // }
     this.stripe = new Stripe(ConfigENV.STRIPE_SECRET_KEY);
   }
+  // Add these methods to your existing StripeService.js
+
+  /**
+   * Create a payment method from card details
+   * @param {Object} cardData - Card information
+   * @param {string} customerId - Stripe customer ID
+   * @returns {Object} Payment method details
+   */
+  async createPaymentMethod(cardData, customerId = null) {
+    try {
+      const { number, exp_month, exp_year, cvc, name, email, phone } = cardData;
+
+      // Create payment method
+      const paymentMethod = await this.stripe.paymentMethods.create({
+        type: "card",
+        card: {
+          number,
+          exp_month,
+          exp_year,
+          cvc,
+        },
+        billing_details: {
+          name,
+          email,
+          phone,
+        },
+      });
+
+      // Attach to customer if provided
+      if (customerId) {
+        await this.stripe.paymentMethods.attach(paymentMethod.id, {
+          customer: customerId,
+        });
+      }
+
+      return {
+        success: true,
+        paymentMethod: {
+          id: paymentMethod.id,
+          type: paymentMethod.type,
+          card: {
+            brand: paymentMethod.card.brand,
+            last4: paymentMethod.card.last4,
+            exp_month: paymentMethod.card.exp_month,
+            exp_year: paymentMethod.card.exp_year,
+            funding: paymentMethod.card.funding,
+          },
+          billing_details: paymentMethod.billing_details,
+        },
+        message: "Payment method created successfully",
+      };
+    } catch (error) {
+      throw new ApiError(
+        500,
+        `Payment method creation failed: ${error.message}`
+      );
+    }
+  }
+
+  /**
+   * Get customer's saved payment methods
+   * @param {string} customerId - Stripe customer ID
+   * @returns {Object} List of payment methods
+   */
+  async getCustomerPaymentMethods(customerId) {
+    try {
+      const paymentMethods = await this.stripe.paymentMethods.list({
+        customer: customerId,
+        type: "card",
+      });
+
+      return {
+        success: true,
+        paymentMethods: paymentMethods.data.map((pm) => ({
+          id: pm.id,
+          type: pm.type,
+          card: {
+            brand: pm.card.brand,
+            last4: pm.card.last4,
+            exp_month: pm.card.exp_month,
+            exp_year: pm.card.exp_year,
+            funding: pm.card.funding,
+          },
+          billing_details: pm.billing_details,
+          created: new Date(pm.created * 1000),
+        })),
+        message: "Payment methods retrieved successfully",
+      };
+    } catch (error) {
+      throw new ApiError(
+        500,
+        `Failed to retrieve payment methods: ${error.message}`
+      );
+    }
+  }
+
+  /**
+   * Delete a payment method
+   * @param {string} paymentMethodId - Payment method ID to delete
+   * @returns {Object} Deletion result
+   */
+  async deletePaymentMethod(paymentMethodId) {
+    try {
+      const paymentMethod = await this.stripe.paymentMethods.detach(
+        paymentMethodId
+      );
+
+      return {
+        success: true,
+        message: "Payment method deleted successfully",
+        paymentMethodId: paymentMethod.id,
+      };
+    } catch (error) {
+      throw new ApiError(
+        500,
+        `Payment method deletion failed: ${error.message}`
+      );
+    }
+  }
+
+  /**
+   * Update payment method billing details
+   * @param {string} paymentMethodId - Payment method ID
+   * @param {Object} billingDetails - New billing details
+   * @returns {Object} Updated payment method
+   */
+  async updatePaymentMethod(paymentMethodId, billingDetails) {
+    try {
+      const paymentMethod = await this.stripe.paymentMethods.update(
+        paymentMethodId,
+        { billing_details: billingDetails }
+      );
+
+      return {
+        success: true,
+        paymentMethod: {
+          id: paymentMethod.id,
+          billing_details: paymentMethod.billing_details,
+        },
+        message: "Payment method updated successfully",
+      };
+    } catch (error) {
+      throw new ApiError(500, `Payment method update failed: ${error.message}`);
+    }
+  }
 
   async createOrGetCustomer(userData, userId) {
     try {

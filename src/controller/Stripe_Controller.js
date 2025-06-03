@@ -120,6 +120,160 @@ export const createPaymentIntent = asyncHandler(async (req, res) => {
   }
 });
 
+export const createPaymentMethod = asyncHandler(async (req, res, next) => {
+  const { cardNumber, expMonth, expYear, cvc, name, email, phone } = req.body;
+  const userId = req.user;
+
+  try {
+    if (!cardNumber || !expMonth || !expYear || !cvc) {
+      return next(new ApiError(400, "Card details are required"));
+    }
+
+    // Get user details
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(new ApiError(404, "User not found"));
+    }
+
+    // Create or get customer
+    const customerData = {
+      email: email || user.email,
+      name: name || user.name || `${user.firstName} ${user.lastName}`,
+      phone: phone || user.phone,
+    };
+
+    const customer = await stripeService.createOrGetCustomer(
+      customerData,
+      userId
+    );
+
+    // Create payment method
+    const cardData = {
+      number: cardNumber,
+      exp_month: parseInt(expMonth),
+      exp_year: parseInt(expYear),
+      cvc,
+      name: customerData.name,
+      email: customerData.email,
+      phone: customerData.phone,
+    };
+
+    const result = await stripeService.createPaymentMethod(
+      cardData,
+      customer.id
+    );
+
+    return res
+      .status(200)
+      .json(new ApiRes(200, result, "Payment method created successfully"));
+  } catch (error) {
+    console.log("Create Payment Method Error:", error);
+    return next(
+      new ApiError(500, `Payment method creation failed: ${error.message}`)
+    );
+  }
+});
+
+export const getUserPaymentMethods = asyncHandler(async (req, res, next) => {
+  const userId = req.user;
+
+  try {
+    // Get user details
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(new ApiError(404, "User not found"));
+    }
+
+    // Find existing customer
+    const existingCustomers = await stripeService.stripe.customers.list({
+      email: user.email,
+      limit: 1,
+    });
+
+    if (existingCustomers.data.length === 0) {
+      return res
+        .status(200)
+        .json(
+          new ApiRes(200, { paymentMethods: [] }, "No payment methods found")
+        );
+    }
+
+    const customer = existingCustomers.data[0];
+    const result = await stripeService.getCustomerPaymentMethods(customer.id);
+
+    return res
+      .status(200)
+      .json(new ApiRes(200, result, "Payment methods retrieved successfully"));
+  } catch (error) {
+    console.log("Get Payment Methods Error:", error);
+    return next(
+      new ApiError(500, `Failed to retrieve payment methods: ${error.message}`)
+    );
+  }
+});
+
+export const deletePaymentMethod = asyncHandler(async (req, res, next) => {
+  const { paymentMethodId } = req.params;
+  const userId = req.user;
+
+  try {
+    if (!paymentMethodId) {
+      return next(new ApiError(400, "Payment method ID is required"));
+    }
+
+    // Verify the payment method belongs to this user (security check)
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(new ApiError(404, "User not found"));
+    }
+
+    const result = await stripeService.deletePaymentMethod(paymentMethodId);
+
+    return res
+      .status(200)
+      .json(new ApiRes(200, result, "Payment method deleted successfully"));
+  } catch (error) {
+    console.log("Delete Payment Method Error:", error);
+    return next(
+      new ApiError(500, `Payment method deletion failed: ${error.message}`)
+    );
+  }
+});
+
+/**
+ * Update payment method billing details
+ */
+export const updatePaymentMethod = asyncHandler(async (req, res, next) => {
+  const { paymentMethodId } = req.params;
+  const { name, email, phone, address } = req.body;
+  const userId = req.user;
+
+  try {
+    if (!paymentMethodId) {
+      return next(new ApiError(400, "Payment method ID is required"));
+    }
+
+    const billingDetails = {};
+    if (name) billingDetails.name = name;
+    if (email) billingDetails.email = email;
+    if (phone) billingDetails.phone = phone;
+    if (address) billingDetails.address = address;
+
+    const result = await stripeService.updatePaymentMethod(
+      paymentMethodId,
+      billingDetails
+    );
+
+    return res
+      .status(200)
+      .json(new ApiRes(200, result, "Payment method updated successfully"));
+  } catch (error) {
+    console.log("Update Payment Method Error:", error);
+    return next(
+      new ApiError(500, `Payment method update failed: ${error.message}`)
+    );
+  }
+});
 // Confirm payment and create bank transaction
 export const confirmPayment = asyncHandler(async (req, res) => {
   const { paymentIntentId } = req.body;

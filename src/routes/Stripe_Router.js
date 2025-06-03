@@ -6,8 +6,13 @@ import {
   refundPayment,
   getPaymentDetails,
   getStripePaymentHistory,
+  // Add these new imports
+  createPaymentMethod,
+  getUserPaymentMethods,
+  deletePaymentMethod,
+  updatePaymentMethod,
 } from "../controller/StripeV2.js";
-import { Authenticated } from "../middleware/authMiddleware.js"; // Assuming you have auth middleware
+import { Authenticated } from "../middleware/authMiddleware.js";
 
 const StripeRouter = express.Router();
 
@@ -19,7 +24,7 @@ StripeRouter.post(
 );
 
 // Protected routes (require authentication)
-StripeRouter.use(Authenticated); // Apply authentication to all routes below
+StripeRouter.use(Authenticated);
 
 // Payment routes
 StripeRouter.post("/create-payment-intent", createPaymentIntent);
@@ -29,5 +34,11 @@ StripeRouter.post("/refund", refundPayment);
 // Payment information routes
 StripeRouter.get("/payment/:paymentIntentId", getPaymentDetails);
 StripeRouter.get("/history", getStripePaymentHistory);
+
+// Payment Methods routes
+StripeRouter.post("/payment-methods", createPaymentMethod);
+StripeRouter.get("/payment-methods", getUserPaymentMethods);
+StripeRouter.delete("/payment-methods/:paymentMethodId", deletePaymentMethod);
+StripeRouter.put("/payment-methods/:paymentMethodId", updatePaymentMethod);
 
 export default StripeRouter;
