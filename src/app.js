@@ -98,7 +98,7 @@ app.use((err, req, res, next) => {
     stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
   });
 });
-
+console.log("Hello World");
 app.listen(PORT, () => {
   console.log(`Server is Running on http://localhost:${PORT}`);
   swaggerDocs(app);

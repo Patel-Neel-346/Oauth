@@ -63,6 +63,7 @@ class LoanApplicationServices {
       throw new ApiError(500, `Error checking eligibility: ${error.message}`);
     }
   }
+  // console.log(5);
 
   static async applyForLoan(req, next) {
     try {
