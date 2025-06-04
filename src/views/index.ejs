@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bank Transactions</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      }
+
+      .header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+      }
+
+      .header p {
+        opacity: 0.8;
+        font-size: 1.1rem;
+      }
+
+      .tabs {
+        display: flex;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+      }
+
+      .tab {
+        flex: 1;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        background: none;
+        border: none;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #6c757d;
+        transition: all 0.3s ease;
+      }
+
+      .tab.active {
+        background: white;
+        color: #2c3e50;
+        border-bottom: 3px solid #667eea;
+      }
+
+      .tab:hover {
+        background: #e9ecef;
+      }
+
+      .content {
+        padding: 40px;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .form-group {
+        margin-bottom: 25px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #2c3e50;
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+      }
+
+      .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .btn {
+        padding: 15px 30px;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn-success {
+        background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+        color: white;
+      }
+
+      .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(86, 171, 47, 0.3);
+      }
+
+      .btn-warning {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+      }
+
+      .btn-warning:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(245, 87, 108, 0.3);
+      }
+
+      .payment-method-card {
+        border: 2px solid #e9ecef;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+      }
+
+      .payment-method-card:hover {
+        border-color: #667eea;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+      }
+
+      .card-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .card-brand {
+        width: 40px;
+        height: 25px;
+        background: #2c3e50;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.8rem;
+        font-weight: bold;
+      }
+
+      .alert {
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        display: none;
+      }
+
+      .alert-success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      .alert-error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+
+      .spinner {
+        display: none;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #ffffff;
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      @media (max-width: 768px) {
+        .row {
+          grid-template-columns: 1fr;
+        }
+
+        .tabs {
+          flex-direction: column;
+        }
+
+        .content {
+          padding: 20px;
+        }
+      }
+
+      #stripe-card-element {
+        padding: 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        background: white;
+      }
+
+      .stripe-form {
+        background: #f8f9fa;
+        padding: 30px;
+        border-radius: 15px;
+        margin-top: 20px;
+      }
+
+      .transaction-list {
+        margin-top: 30px;
+      }
+
+      .transaction-item {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .transaction-type {
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+
+      .type-deposit {
+        background: #d4edda;
+        color: #155724;
+      }
+      .type-withdrawal {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .type-transfer {
+        background: #d1ecf1;
+        color: #0c5460;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1><i class="fas fa-university"></i> Bank Transactions</h1>
+        <p>Manage your deposits, withdrawals, and transfers securely</p>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" onclick="showTab('deposit')">
+          <i class="fas fa-plus-circle"></i> Deposit
+        </button>
+        <button class="tab" onclick="showTab('withdraw')">
+          <i class="fas fa-minus-circle"></i> Withdraw
+        </button>
+        <button class="tab" onclick="showTab('transfer')">
+          <i class="fas fa-exchange-alt"></i> Transfer
+        </button>
+        <button class="tab" onclick="showTab('history')">
+          <i class="fas fa-history"></i> History
+        </button>
+      </div>
+
+      <div class="content">
+        <div id="alerts"></div>
+
+        <!-- Deposit Tab -->
+        <div id="deposit" class="tab-content active">
+          <h2><i class="fas fa-plus-circle"></i> Deposit Funds</h2>
+
+          <form id="depositForm">
+            <div class="row">
+              <div class="form-group">
+                <label>Account Number</label>
+                <input
+                  type="text"
+                  id="depositAccountNumber"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Amount ($)</label>
+                <input
+                  type="number"
+                  id="depositAmount"
+                  class="form-control"
+                  step="0.01"
+                  min="1"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Description</label>
+              <input
+                type="text"
+                id="depositDescription"
+                class="form-control"
+                placeholder="Optional description"
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Deposit Method</label>
+              <select
+                id="depositMethod"
+                class="form-control"
+                onchange="toggleDepositMethod()"
+              >
+                <option value="cash">Cash/Check Deposit</option>
+                <option value="stripe">Credit/Debit Card (Stripe)</option>
+              </select>
+            </div>
+
+            <!-- Cash Deposit -->
+            <div id="cashDeposit">
+              <button
+                type="button"
+                class="btn btn-success"
+                onclick="processCashDeposit()"
+              >
+                <i class="fas fa-money-bill-wave"></i>
+                <span>Process Cash Deposit</span>
+                <div class="spinner" id="cashSpinner"></div>
+              </button>
+            </div>
+
+            <!-- Stripe Deposit -->
+            <div id="stripeDeposit" style="display: none">
+              <div class="stripe-form">
+                <h3><i class="fab fa-stripe"></i> Card Payment Details</h3>
+
+                <div class="row">
+                  <div class="form-group">
+                    <label>Cardholder Name</label>
+                    <input
+                      type="text"
+                      id="cardholderName"
+                      class="form-control"
+                      required
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      id="cardholderEmail"
+                      class="form-control"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Phone</label>
+                  <input type="tel" id="cardholderPhone" class="form-control" />
+                </div>
+
+                <div class="form-group">
+                  <label>Card Information</label>
+                  <div id="stripe-card-element"></div>
+                  <div
+                    id="card-errors"
+                    role="alert"
+                    style="color: #721c24; margin-top: 10px"
+                  ></div>
+                </div>
+
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  onclick="processStripeDeposit()"
+                >
+                  <i class="fab fa-stripe-s"></i>
+                  <span>Pay with Stripe</span>
+                  <div class="spinner" id="stripeSpinner"></div>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Withdraw Tab -->
+        <div id="withdraw" class="tab-content">
+          <h2><i class="fas fa-minus-circle"></i> Withdraw Funds</h2>
+
+          <form id="withdrawForm">
+            <div class="row">
+              <div class="form-group">
+                <label>Account Number</label>
+                <input
+                  type="text"
+                  id="withdrawAccountNumber"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Amount ($)</label>
+                <input
+                  type="number"
+                  id="withdrawAmount"
+                  class="form-control"
+                  step="0.01"
+                  min="1"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Description</label>
+              <input
+                type="text"
+                id="withdrawDescription"
+                class="form-control"
+                placeholder="Optional description"
+              />
+            </div>
+
+            <button
+              type="button"
+              class="btn btn-warning"
+              onclick="processWithdraw()"
+            >
+              <i class="fas fa-money-bill-wave"></i>
+              <span>Process Withdrawal</span>
+              <div class="spinner" id="withdrawSpinner"></div>
+            </button>
+          </form>
+        </div>
+
+        <!-- Transfer Tab -->
+        <div id="transfer" class="tab-content">
+          <h2><i class="fas fa-exchange-alt"></i> Transfer Funds</h2>
+
+          <form id="transferForm">
+            <div class="row">
+              <div class="form-group">
+                <label>From Account Number</label>
+                <input
+                  type="text"
+                  id="fromAccountNumber"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>To Account Number</label>
+                <input
+                  type="text"
+                  id="toAccountNumber"
+                  class="form-control"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Amount ($)</label>
+              <input
+                type="number"
+                id="transferAmount"
+                class="form-control"
+                step="0.01"
+                min="1"
+                required
+              />
+            </div>
+
+            <div <div class="form-group">
+              <label>Description</label>
+              <input
+                type="text"
+                id="transferDescription"
+                class="form-control"
+                placeholder="Optional description"
+              />
+            </div>
+
+            <button
+              type="button"
+              class="btn btn-primary"
+              onclick="processTransfer()"
+            >
+              <i class="fas fa-exchange-alt"></i>
+              <span>Process Transfer</span>
+              <div class="spinner" id="transferSpinner"></div>
+            </button>
+          </form>
+        </div>
+
+        <!-- History Tab -->
+        <div id="history" class="tab-content">
+          <h2><i class="fas fa-history"></i> Transaction History</h2>
+
+          <div class="transaction-list" id="transactionList">
+            <% if (transactions && transactions.length > 0) { %> <%
+            transactions.forEach(transaction => { %>
+            <div class="transaction-item">
+              <div>
+                <strong><%= transaction.type %></strong> - $<%=
+                transaction.amount %>
+                <br />
+                <small><%= transaction.date %></small>
+                <br />
+                <%= transaction.description %>
+              </div>
+              <span
+                class="transaction-type type-<%= transaction.type.toLowerCase() %>"
+              >
+                <%= transaction.type %>
+              </span>
+            </div>
+            <% }) %> <% } else { %>
+            <p>No transactions found.</p>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const tabs = document.querySelectorAll(".tab");
+      const contents = document.querySelectorAll(".tab-content");
+
+      function showTab(id) {
+        tabs.forEach((tab) => tab.classList.remove("active"));
+        contents.forEach((content) => content.classList.remove("active"));
+
+        document.querySelector(`#${id}`).classList.add("active");
+        event.currentTarget.classList.add("active");
+      }
+
+      function toggleDepositMethod() {
+        const method = document.getElementById("depositMethod").value;
+        document.getElementById("cashDeposit").style.display =
+          method === "cash" ? "block" : "none";
+        document.getElementById("stripeDeposit").style.display =
+          method === "stripe" ? "block" : "none";
+      }
+
+      // Dummy functions for actions
+      function processCashDeposit() {
+        document.getElementById("cashSpinner").style.display = "inline-block";
+        setTimeout(() => alert("Cash deposit processed!"), 1000);
+      }
+
+      function processStripeDeposit() {
+        document.getElementById("stripeSpinner").style.display = "inline-block";
+        // Replace with actual Stripe logic here
+        setTimeout(() => alert("Stripe payment processed!"), 1000);
+      }
+
+      function processWithdraw() {
+        document.getElementById("withdrawSpinner").style.display =
+          "inline-block";
+        setTimeout(() => alert("Withdrawal processed!"), 1000);
+      }
+
+      function processTransfer() {
+        document.getElementById("transferSpinner").style.display =
+          "inline-block";
+        setTimeout(() => alert("Transfer processed!"), 1000);
+      }
+    </script>
+  </body>
+</html>

@@ -4,42 +4,228 @@ import { asyncHandler } from "../helpers/asyncHandler.js";
 import Account from "../models/Account.js";
 import Transaction from "../models/Transaction.js";
 import TransactionServiceV2 from "../services/TransactionService.js";
+import StripeService from "../services/StripeService.js";
 
+const stripeService = new StripeService();
+
+// Traditional Deposit (Cash/Check)
 export const DepositFunds = asyncHandler(async (req, res, next) => {
   const { accountNumber, amount, description } = req.body;
-
   const userId = req.user;
 
   try {
     const account = await Account.findOne({ accountNumber: accountNumber });
-    // console.log(account._id.toString());
 
     if (!account) {
-      return next(new ApiError(404, "Account not Found :("));
+      return next(new ApiError(404, "Account not Found"));
     }
 
     const result = await TransactionServiceV2.DepositFunds(
       account._id.toString(),
       parseFloat(amount),
-      description || "Deposit",
+      description || "Cash Deposit",
       {
         initiateBy: userId,
       }
     );
 
-    // console.log(result);
+    return res
+      .status(200)
+      .json(new ApiRes(200, result, "Deposit Completed Successfully"));
+  } catch (error) {
+    console.log("Deposit Error:", error);
+    return next(new ApiError(500, `Deposit Error: ${error.message}`));
+  }
+});
+
+// Stripe Deposit - Create Payment Intent
+export const CreateStripeDeposit = asyncHandler(async (req, res, next) => {
+  const {
+    accountNumber,
+    amount,
+    description,
+    paymentMethodId,
+    customerData,
+    currency = "usd",
+  } = req.body;
+  const userId = req.user;
+
+  try {
+    const account = await Account.findOne({ accountNumber });
+
+    if (!account) {
+      return next(new ApiError(404, "Account not found"));
+    }
+
+    if (account.userId.toString() !== userId.toString()) {
+      return next(new ApiError(403, "Unauthorized access to account"));
+    }
+
+    const paymentData = {
+      amount: parseFloat(amount),
+      currency,
+      accountId: account._id.toString(),
+      userId,
+      description: description || "Bank Deposit via Stripe",
+      paymentMethodId,
+      customerData,
+      metadata: {
+        deposit_type: "stripe",
+        account_number: accountNumber,
+      },
+    };
+
+    const result = await stripeService.createPaymentIntent(paymentData);
+
+    return res
+      .status(200)
+      .json(new ApiRes(200, result, "Payment intent created successfully"));
+  } catch (error) {
+    console.log("Stripe Deposit Error:", error);
+    return next(new ApiError(500, `Stripe Deposit Error: ${error.message}`));
+  }
+});
+
+// Process Stripe Payment
+export const ProcessStripePayment = asyncHandler(async (req, res, next) => {
+  const {
+    accountNumber,
+    amount,
+    description,
+    paymentMethodId,
+    customerData,
+    currency = "usd",
+  } = req.body;
+  const userId = req.user;
+
+  try {
+    const account = await Account.findOne({ accountNumber });
+
+    if (!account) {
+      return next(new ApiError(404, "Account not found"));
+    }
+
+    if (account.userId.toString() !== userId.toString()) {
+      return next(new ApiError(403, "Unauthorized access to account"));
+    }
+
+    const paymentData = {
+      amount: parseFloat(amount),
+      currency,
+      accountId: account._id.toString(),
+      userId,
+      description: description || "Bank Deposit via Stripe",
+      paymentMethodId,
+      customerData,
+      metadata: {
+        deposit_type: "stripe",
+        account_number: accountNumber,
+      },
+    };
+
+    const result = await stripeService.processPayment(paymentData);
+
+    return res
+      .status(200)
+      .json(new ApiRes(200, result, "Payment processed successfully"));
+  } catch (error) {
+    console.log("Stripe Payment Error:", error);
+    return next(new ApiError(500, `Payment Error: ${error.message}`));
+  }
+});
+
+// Stripe Webhook Handler
+export const HandleStripeWebhook = asyncHandler(async (req, res, next) => {
+  const payload = req.body;
+  const signature = req.headers["stripe-signature"];
+
+  try {
+    const result = await stripeService.handleWebhook(payload, signature);
+    return res.status(200).json({ received: true });
+  } catch (error) {
+    console.log("Webhook Error:", error);
+    return next(new ApiError(400, `Webhook Error: ${error.message}`));
+  }
+});
+
+// Create/Get Stripe Customer
+export const CreateStripeCustomer = asyncHandler(async (req, res, next) => {
+  const { email, name, phone } = req.body;
+  const userId = req.user;
+
+  try {
+    const customer = await stripeService.createOrGetCustomer(
+      { email, name, phone },
+      userId
+    );
 
     return res
       .status(200)
       .json(
-        new ApiRes(200, result, "Deposit Completed SuccessFully :) ye ye ye ")
+        new ApiRes(200, customer, "Customer created/retrieved successfully")
       );
   } catch (error) {
-    console.log("Deposit Error:", error);
-    return next(new ApiError(500, `Deposit Error:${error.message}`));
+    console.log("Customer Creation Error:", error);
+    return next(new ApiError(500, `Customer Error: ${error.message}`));
   }
 });
 
+// Add Payment Method
+export const AddPaymentMethod = asyncHandler(async (req, res, next) => {
+  const { cardData, customerId } = req.body;
+
+  try {
+    const result = await stripeService.createPaymentMethod(
+      cardData,
+      customerId
+    );
+
+    return res
+      .status(200)
+      .json(new ApiRes(200, result, "Payment method added successfully"));
+  } catch (error) {
+    console.log("Payment Method Error:", error);
+    return next(new ApiError(500, `Payment Method Error: ${error.message}`));
+  }
+});
+
+// Get User Payment Methods
+export const GetPaymentMethods = asyncHandler(async (req, res, next) => {
+  const { customerId } = req.params;
+
+  try {
+    const result = await stripeService.getUserPaymentMethods(customerId);
+
+    return res
+      .status(200)
+      .json(new ApiRes(200, result, "Payment methods retrieved successfully"));
+  } catch (error) {
+    console.log("Get Payment Methods Error:", error);
+    return next(new ApiError(500, `Payment Methods Error: ${error.message}`));
+  }
+});
+
+// Refund Payment
+export const RefundPayment = asyncHandler(async (req, res, next) => {
+  const { paymentIntentId, amount, reason } = req.body;
+
+  try {
+    const result = await stripeService.refundPayment(
+      paymentIntentId,
+      amount,
+      reason
+    );
+
+    return res
+      .status(200)
+      .json(new ApiRes(200, result, "Refund processed successfully"));
+  } catch (error) {
+    console.log("Refund Error:", error);
+    return next(new ApiError(500, `Refund Error: ${error.message}`));
+  }
+});
+
+// Withdraw Funds
 export const WithDrawFunds = asyncHandler(async (req, res, next) => {
   const { accountNumber, amount, description } = req.body;
   const userId = req.user;
@@ -47,13 +233,13 @@ export const WithDrawFunds = asyncHandler(async (req, res, next) => {
   try {
     const account = await Account.findOne({ accountNumber });
     if (!account) {
-      return next(new ApiError(404, "Account not Found in Controller :("));
+      return next(new ApiError(404, "Account not found"));
     }
 
     const result = await TransactionServiceV2.WithdrawFunds(
       account._id.toString(),
       parseFloat(amount),
-      description || "Withdraw",
+      description || "Withdrawal",
       {
         initiateBy: userId,
       }
@@ -61,42 +247,38 @@ export const WithDrawFunds = asyncHandler(async (req, res, next) => {
 
     return res
       .status(200)
-      .json(new ApiRes(200, result, "Withdraw Completed SuccessFully :) "));
+      .json(new ApiRes(200, result, "Withdrawal completed successfully"));
   } catch (error) {
-    console.log("WithDraw Error At WithDraw Controller :(");
-    return next(new ApiError(500, `${error.message}`));
+    console.log("Withdrawal Error:", error);
+    return next(new ApiError(500, `Withdrawal Error: ${error.message}`));
   }
 });
 
+// Transfer Funds
 export const TransferFunds = asyncHandler(async (req, res, next) => {
   const { fromAccountNumber, toAccountNumber, amount, description } = req.body;
-
   const userId = req.user;
 
   try {
     const fromAccount = await Account.findOne({
       accountNumber: fromAccountNumber,
     });
-    // console.log(fromAccount);
 
     if (!fromAccount) {
-      return next(new ApiError(404, "Source account not found man :("));
+      return next(new ApiError(404, "Source account not found"));
     }
 
     const toAccount = await Account.findOne({
       accountNumber: toAccountNumber,
     });
-    // console.log(toAccount);
+
     if (!toAccount) {
-      return next(new ApiError(404, "Destination account not Found man"));
+      return next(new ApiError(404, "Destination account not found"));
     }
 
     if (fromAccount._id.toString() === toAccount._id.toString()) {
       return next(
-        new ApiError(
-          404,
-          "Bro can not tranfer money to Your Same account man :("
-        )
+        new ApiError(400, "Cannot transfer money to the same account")
       );
     }
 
@@ -112,33 +294,27 @@ export const TransferFunds = asyncHandler(async (req, res, next) => {
 
     res
       .status(200)
-      .json(
-        new ApiRes(
-          200,
-          result,
-          "Transfer Completed Successfully Buddy Enjoy :)"
-        )
-      );
+      .json(new ApiRes(200, result, "Transfer completed successfully"));
   } catch (error) {
-    console.log(`Transfer Error:${error}`);
-    return next(new ApiError(500, "Transfer error controller"));
+    console.log(`Transfer Error: ${error}`);
+    return next(new ApiError(500, `Transfer Error: ${error.message}`));
   }
 });
 
+// Get Account Balance
 export const GetAccountBalance = asyncHandler(async (req, res, next) => {
   const { accountNumber } = req.params || req.query;
   const { limit = 10 } = req.params || req.query;
-
   const userId = req.user;
-  // console.log(userId);
+
   try {
     const account = await Account.findOne({
       accountNumber: accountNumber,
       userId,
     });
-    // console.log(account);
+
     if (!account) {
-      return next(new ApiError(404, "Account not found bro :("));
+      return next(new ApiError(404, "Account not found"));
     }
 
     const result = await TransactionServiceV2.GetAccountBalance(
@@ -148,13 +324,14 @@ export const GetAccountBalance = asyncHandler(async (req, res, next) => {
 
     res
       .status(200)
-      .json(new ApiRes(200, result, "Account Balance Retrived SuccessFully"));
+      .json(new ApiRes(200, result, "Account balance retrieved successfully"));
   } catch (error) {
-    console.log(`Account Balance Error:${error.message}`);
-    return next(new ApiError(500, `Balance Error in Account ${error.message}`));
+    console.log(`Account Balance Error: ${error.message}`);
+    return next(new ApiError(500, `Balance Error: ${error.message}`));
   }
 });
 
+// Get Transaction History
 export const GetTransactionHistory = asyncHandler(async (req, res, next) => {
   const { accountNumber } = req.body || req.params || req.query;
   const {
@@ -171,16 +348,14 @@ export const GetTransactionHistory = asyncHandler(async (req, res, next) => {
   const userId = req.user;
 
   try {
-    // console.log(accountNumber);
     const account = await Account.findOne({
       accountNumber: accountNumber,
     });
-    // console.log(account);
+
     if (!account) {
-      return next(new ApiError(400, "Account does not exisits"));
+      return next(new ApiError(400, "Account does not exist"));
     }
 
-    //build filter man
     const filter = {
       type,
       status,
@@ -190,8 +365,7 @@ export const GetTransactionHistory = asyncHandler(async (req, res, next) => {
       amountMax,
     };
 
-    //remove undefined Values from Filter :-:
-
+    // Remove undefined values from filter
     Object.keys(filter).forEach((key) => {
       if (filter[key] === undefined) {
         delete filter[key];
@@ -205,23 +379,18 @@ export const GetTransactionHistory = asyncHandler(async (req, res, next) => {
       limit
     );
 
-    // console.log(result);
-
     return res
       .status(200)
       .json(
-        new ApiRes(
-          200,
-          result,
-          "SuccessFully Retrived Transaction Histroy Of Your bank account :)"
-        )
+        new ApiRes(200, result, "Transaction history retrieved successfully")
       );
   } catch (error) {
     console.log("Transaction history error in controller");
-    return next(new ApiError(500, `Trasaction Error:${error.message}`));
+    return next(new ApiError(500, `Transaction Error: ${error.message}`));
   }
 });
 
+// Transaction Summary
 export const TransactionSummary = asyncHandler(async (req, res, next) => {
   const userId = req.user;
   const { period = "month", accountId } = req.query;
@@ -233,18 +402,18 @@ export const TransactionSummary = asyncHandler(async (req, res, next) => {
 
       const account = await Account.findOne(accountQuery);
       if (!account) {
-        return next(new ApiError(404, "Account not found  :-]"));
+        return next(new ApiError(404, "Account not found"));
       }
     }
 
     const userAccounts = await Account.find(accountQuery).select("_id");
     const accountIds = userAccounts.map((acc) => acc._id);
 
-    if (accountIds.length == 0) {
+    if (accountIds.length === 0) {
       return res
         .status(200)
         .json(
-          new ApiRes(200, { statistics: {} }, "No Accounts Founds For User")
+          new ApiRes(200, { statistics: {} }, "No accounts found for user")
         );
     }
 
@@ -271,7 +440,6 @@ export const TransactionSummary = asyncHandler(async (req, res, next) => {
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
     }
 
-    // Aggregate transaction statistics
     const statistics = await Transaction.aggregate([
       {
         $match: {
@@ -293,7 +461,6 @@ export const TransactionSummary = asyncHandler(async (req, res, next) => {
       },
     ]);
 
-    // Format statistics
     const formattedStats = {};
     statistics.forEach((stat) => {
       formattedStats[stat._id] = {
@@ -303,7 +470,6 @@ export const TransactionSummary = asyncHandler(async (req, res, next) => {
       };
     });
 
-    // Get daily transaction counts for the period
     const dailyStats = await Transaction.aggregate([
       {
         $match: {
@@ -344,7 +510,7 @@ export const TransactionSummary = asyncHandler(async (req, res, next) => {
   } catch (error) {
     console.log("TransactionSummary Error");
     return next(
-      new ApiError(500, `Transaction Summary Error: ${error.message} `)
+      new ApiError(500, `Transaction Summary Error: ${error.message}`)
     );
   }
 });
