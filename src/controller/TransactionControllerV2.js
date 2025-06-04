@@ -524,17 +524,6 @@ export const StripeDepositFunds = asyncHandler(async (req, res, next) => {
       return next(new ApiError(400, "Stripe payment failed"));
     }
 
-    const result = await TransactionServiceV2.DepositFunds(
-      account._id.toString(),
-      parseFloat(amount),
-      description || "Deposit",
-      {
-        initiateBy: userId,
-      }
-    );
-
-    console.log(result);
-
     // Update our internal transaction record to mark as completed
     const transaction = await Transaction.findOne({
       reference: `STRIPE_${stripeResult.payment.id}`,
@@ -631,6 +620,7 @@ export const ConfirmStripePayment = asyncHandler(async (req, res, next) => {
   const { paymentIntentId } = req.body;
   const userId = req.user;
 
+  console.log(paymentIntentId);
   try {
     if (!paymentIntentId) {
       return next(new ApiError(400, "Payment intent ID is required"));
@@ -639,8 +629,8 @@ export const ConfirmStripePayment = asyncHandler(async (req, res, next) => {
     // Find the transaction by reference
     const transaction = await Transaction.findOne({
       reference: `STRIPE_${paymentIntentId}`,
-      "metadata.user_id": userId,
     }).populate("toAccount");
+    console.log(transaction);
 
     if (!transaction) {
       return next(new ApiError(404, "Payment not found or unauthorized"));
@@ -655,7 +645,7 @@ export const ConfirmStripePayment = asyncHandler(async (req, res, next) => {
     if (paymentDetails.stripe_details.status === "succeeded") {
       transaction.status = "completed";
       transaction.processAt = new Date();
-      transaction.type = "stripe_payment";
+      transaction.type = "deposit";
       await transaction.save();
 
       // Update account balance
