@@ -542,6 +542,10 @@ class StripeService {
           account_number: account.accountNumber,
           ...metadata,
         },
+        automatic_payment_methods: {
+          enabled: true,
+          allow_redirects: "never", // 👈 this disables methods that require redirects
+        },
       });
 
       // Create pending transaction record
