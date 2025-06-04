@@ -267,12 +267,16 @@ class StripeService {
           account_number: account.accountNumber,
           ...metadata,
         },
+        automatic_payment_methods: {
+          enabled: true,
+          allow_redirects: "never",
+        },
       });
 
       const transaction = new Transaction({
         toAccount: accountId,
         amount,
-        type: "stripe_payment",
+        type: "payment",
         description,
         status: paymentIntent.status === "succeeded" ? "completed" : "failed",
         reference: `STRIPE_${paymentIntent.id}`,

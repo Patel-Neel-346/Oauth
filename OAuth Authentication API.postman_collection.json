@@ -1340,47 +1340,57 @@
 				}
 			]
 		},
-	 {
-      "name": "Public Endpoints",
+		 {
+      "name": "Payment Methods",
       "item": [
         {
-          "name": "Get Test Tokens",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/Stripe/test-tokens",
-              "host": ["{{baseUrl}}"],
-              "path": ["Stripe", "test-tokens"]
-            },
-            "description": "Get available Stripe test tokens for different card types"
-          },
-          "response": []
-        },
-        {
-          "name": "Stripe Webhook",
+          "name": "Create Payment Method",
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "stripe-signature",
-                "value": "webhook-signature-here"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"id\": \"evt_test_webhook\",\n  \"object\": \"event\",\n  \"api_version\": \"2020-08-27\",\n  \"created\": 1326853478,\n  \"data\": {\n    \"object\": {\n      \"id\": \"pi_test_1234\",\n      \"object\": \"payment_intent\",\n      \"amount\": 2000,\n      \"currency\": \"usd\",\n      \"status\": \"succeeded\"\n    }\n  },\n  \"livemode\": false,\n  \"pending_webhooks\": 1,\n  \"request\": {\n    \"id\": \"req_test_1234\",\n    \"idempotency_key\": null\n  },\n  \"type\": \"payment_intent.succeeded\"\n}"
+              "raw": "{\n  \"number\": \"4242424242424242\",\n  \"exp_month\": 12,\n  \"exp_year\": 2025,\n  \"cvc\": \"123\",\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"phone\": \"+1234567890\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/Stripe/webhook",
-              "host": ["{{baseUrl}}"],
-              "path": ["Stripe", "webhook"]
+              "raw": "{{base_url}}/Stripe/payment-methods",
+              "host": ["{{base_url}}"],
+              "path": ["Stripe", "payment-methods"]
             },
-            "description": "Handle Stripe webhooks (no authentication required)"
+            "description": "Create a new payment method (credit card) for the authenticated user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Payment Methods",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/Stripe/payment-methods",
+              "host": ["{{base_url}}"],
+              "path": ["Stripe", "payment-methods"]
+            },
+            "description": "Retrieve all payment methods for the authenticated user"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Payment Method",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/Stripe/payment-methods/{{payment_method_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["Stripe", "payment-methods", "{{payment_method_id}}"]
+            },
+            "description": "Delete a specific payment method by ID"
           },
           "response": []
         }
@@ -1401,14 +1411,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"accountNumber\": \"ACC123456789\",\n  \"amount\": 100.50,\n  \"currency\": \"usd\",\n  \"description\": \"Payment for services\",\n  \"paymentMethodId\": \"pm_card_visa\"\n}"
+              "raw": "{\n  \"accountNumber\": \"{{account_number}}\",\n  \"amount\": 100.50,\n  \"currency\": \"usd\",\n  \"description\": \"Test payment to savings account\",\n  \"paymentMethodId\": \"{{payment_method_id}}\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/Stripe/create-payment-intent",
-              "host": ["{{baseUrl}}"],
+              "raw": "{{base_url}}/Stripe/create-payment-intent",
+              "host": ["{{base_url}}"],
               "path": ["Stripe", "create-payment-intent"]
             },
-            "description": "Create a Stripe payment intent for processing payment"
+            "description": "Create a payment intent for a specific account"
           },
           "response": []
         },
@@ -1424,17 +1434,36 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"accountNumber\": \"ACC123456789\",\n  \"amount\": 100.50,\n  \"currency\": \"usd\",\n  \"description\": \"Direct payment processing\",\n  \"paymentMethodId\": \"pm_card_visa\"\n}"
+              "raw": "{\n  \"accountNumber\": \"{{account_number}}\",\n  \"amount\": 250.75,\n  \"currency\": \"usd\",\n  \"description\": \"Direct payment to checking account\",\n  \"paymentMethodId\": \"{{payment_method_id}}\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/Stripe/process-payment",
-              "host": ["{{baseUrl}}"],
+              "raw": "{{base_url}}/Stripe/process-payment",
+              "host": ["{{base_url}}"],
               "path": ["Stripe", "process-payment"]
             },
-            "description": "Process payment directly (create and confirm payment intent)"
+            "description": "Process a payment directly to an account"
           },
           "response": []
         },
+        {
+          "name": "Get Payment Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/Stripe/payment/{{payment_intent_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["Stripe", "payment", "{{payment_intent_id}}"]
+            },
+            "description": "Retrieve details of a specific payment by payment intent ID"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Refunds",
+      "item": [
         {
           "name": "Refund Payment",
           "request": {
@@ -1447,200 +1476,30 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"paymentIntentId\": \"pi_1234567890\",\n  \"amount\": 50.25,\n  \"reason\": \"requested_by_customer\"\n}"
+              "raw": "{\n  \"paymentIntentId\": \"{{payment_intent_id}}\",\n  \"amount\": 50.00,\n  \"reason\": \"requested_by_customer\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/Stripe/refund",
-              "host": ["{{baseUrl}}"],
+              "raw": "{{base_url}}/Stripe/refund",
+              "host": ["{{base_url}}"],
               "path": ["Stripe", "refund"]
             },
-            "description": "Refund a payment (full or partial)"
+            "description": "Process a refund for a payment. Amount is optional (full refund if not provided)"
           },
           "response": []
         }
       ]
     },
     {
-      "name": "Payment Methods - From Token",
+      "name": "Transaction History",
       "item": [
-        {
-          "name": "Create Payment Method from Test Token",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"token\": \"tok_visa\",\n  \"billing_details\": {\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"phone\": \"+1234567890\",\n    \"address\": {\n      \"line1\": \"123 Main St\",\n      \"city\": \"Anytown\",\n      \"state\": \"CA\",\n      \"postal_code\": \"12345\",\n      \"country\": \"US\"\n    }\n  }\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/Stripe/payment-methods/from-token",
-              "host": ["{{baseUrl}}"],
-              "path": ["Stripe", "payment-methods", "from-token"]
-            },
-            "description": "Create payment method using Stripe test tokens (tok_visa, tok_mastercard, etc.)"
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Payment Methods - From Card",
-      "item": [
-        {
-          "name": "Create Payment Method from Card Details (Sources API)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"number\": \"4242424242424242\",\n  \"exp_month\": 12,\n  \"exp_year\": 2025,\n  \"cvc\": \"123\",\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/Stripe/payment-methods/from-card",
-              "host": ["{{baseUrl}}"],
-              "path": ["Stripe", "payment-methods", "from-card"]
-            },
-            "description": "Create payment method using Sources API (legacy method)"
-          },
-          "response": []
-        },
-        {
-          "name": "Create Payment Method - Raw Card Data",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"number\": \"4242424242424242\",\n  \"exp_month\": 12,\n  \"exp_year\": 2025,\n  \"cvc\": \"123\",\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"+1234567890\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/Stripe/payment-methods/raw-card",
-              "host": ["{{baseUrl}}"],
-              "path": ["Stripe", "payment-methods", "raw-card"]
-            },
-            "description": "Create payment method using raw card data (requires special Stripe configuration)"
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Payment Methods Management",
-      "item": [
-        {
-          "name": "Get User Payment Methods",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/Stripe/payment-methods",
-              "host": ["{{baseUrl}}"],
-              "path": ["Stripe", "payment-methods"]
-            },
-            "description": "Get all saved payment methods for the authenticated user"
-          },
-          "response": []
-        },
-        {
-          "name": "Update Payment Method",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"John Smith\",\n  \"email\": \"johnsmith@example.com\",\n  \"phone\": \"+1987654321\",\n  \"address\": {\n    \"line1\": \"456 Oak St\",\n    \"city\": \"New City\",\n    \"state\": \"NY\",\n    \"postal_code\": \"54321\",\n    \"country\": \"US\"\n  }\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/Stripe/payment-methods/:paymentMethodId",
-              "host": ["{{baseUrl}}"],
-              "path": ["Stripe", "payment-methods", ":paymentMethodId"],
-              "variable": [
-                {
-                  "key": "paymentMethodId",
-                  "value": "pm_1234567890",
-                  "description": "Stripe Payment Method ID"
-                }
-              ]
-            },
-            "description": "Update billing details for a payment method"
-          },
-          "response": []
-        },
-        {
-          "name": "Delete Payment Method",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/Stripe/payment-methods/:paymentMethodId",
-              "host": ["{{baseUrl}}"],
-              "path": ["Stripe", "payment-methods", ":paymentMethodId"],
-              "variable": [
-                {
-                  "key": "paymentMethodId",
-                  "value": "pm_1234567890",
-                  "description": "Stripe Payment Method ID"
-                }
-              ]
-            },
-            "description": "Delete a saved payment method"
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Payment Information",
-      "item": [
-        {
-          "name": "Get Payment Details",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/Stripe/payment/:paymentIntentId",
-              "host": ["{{baseUrl}}"],
-              "path": ["Stripe", "payment", ":paymentIntentId"],
-              "variable": [
-                {
-                  "key": "paymentIntentId",
-                  "value": "pi_1234567890",
-                  "description": "Stripe Payment Intent ID"
-                }
-              ]
-            },
-            "description": "Get detailed information about a specific payment"
-          },
-          "response": []
-        },
         {
           "name": "Get Stripe Payment History",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/Stripe/history?page=1&limit=10&status=completed&accountNumber=ACC123456789",
-              "host": ["{{baseUrl}}"],
+              "raw": "{{base_url}}/Stripe/history?page=1&limit=10",
+              "host": ["{{base_url}}"],
               "path": ["Stripe", "history"],
               "query": [
                 {
@@ -1656,35 +1515,181 @@
                 {
                   "key": "status",
                   "value": "completed",
-                  "description": "Filter by payment status (optional)"
+                  "description": "Filter by transaction status",
+                  "disabled": true
                 },
                 {
                   "key": "accountNumber",
-                  "value": "ACC123456789",
-                  "description": "Filter by account number (optional)"
+                  "value": "{{account_number}}",
+                  "description": "Filter by specific account number",
+                  "disabled": true
                 }
               ]
             },
-            "description": "Get paginated payment history for the authenticated user"
+            "description": "Retrieve paginated Stripe payment history for the authenticated user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Payment History - Filtered by Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/Stripe/history?page=1&limit=5&status=completed",
+              "host": ["{{base_url}}"],
+              "path": ["Stripe", "history"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                },
+                {
+                  "key": "status",
+                  "value": "completed"
+                }
+              ]
+            },
+            "description": "Get payment history filtered by transaction status"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Payment History - Filtered by Account",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/Stripe/history?page=1&limit=10&accountNumber={{account_number}}",
+              "host": ["{{base_url}}"],
+              "path": ["Stripe", "history"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "accountNumber",
+                  "value": "{{account_number}}"
+                }
+              ]
+            },
+            "description": "Get payment history for a specific account"
           },
           "response": []
         }
       ]
     },
     {
-      "name": "Test Card Numbers",
+      "name": "Webhooks",
       "item": [
         {
-          "name": "Test Cards Documentation",
+          "name": "Stripe Webhook Handler",
           "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/Stripe/test-tokens",
-              "host": ["{{baseUrl}}"],
-              "path": ["Stripe", "test-tokens"]
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "stripe-signature",
+                "value": "t=1234567890,v1=signature_here",
+                "description": "Stripe webhook signature"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"evt_test_webhook\",\n  \"object\": \"event\",\n  \"api_version\": \"2020-08-27\",\n  \"created\": 1234567890,\n  \"data\": {\n    \"object\": {\n      \"id\": \"pi_test_123456\",\n      \"object\": \"payment_intent\",\n      \"amount\": 10000,\n      \"currency\": \"usd\",\n      \"status\": \"succeeded\"\n    }\n  },\n  \"livemode\": false,\n  \"pending_webhooks\": 1,\n  \"request\": {\n    \"id\": \"req_test_123456\",\n    \"idempotency_key\": null\n  },\n  \"type\": \"payment_intent.succeeded\"\n}"
             },
-            "description": "Available test card numbers and tokens:\n\n**Test Card Numbers:**\n- Visa: 4242424242424242\n- Visa (debit): 4000056655665556\n- Mastercard: 5555555555554444\n- Mastercard (debit): 5200828282828210\n- American Express: 378282246310005\n- Discover: 6011111111111117\n- JCB: 3530111333300000\n- Diners Club: 30569309025904\n\n**Test Tokens:**\n- tok_visa\n- tok_visa_debit\n- tok_mastercard\n- tok_mastercard_debit\n- tok_amex\n- tok_discover\n- tok_jcb\n- tok_diners\n\n**Decline Test Tokens:**\n- tok_chargeDeclined\n- tok_chargeDeclinedInsufficientFunds\n- tok_chargeDeclinedLostCard\n- tok_chargeDeclinedStolenCard\n- tok_chargeDeclinedExpiredCard\n- tok_chargeDeclinedIncorrectCvc\n- tok_chargeDeclinedProcessingError\n\n**Test Details:**\n- Any future expiry date (MM/YY)\n- Any 3-digit CVC (4 digits for Amex)\n- Any valid postal code"
+            "url": {
+              "raw": "{{base_url}}/Stripe/webhook",
+              "host": ["{{base_url}}"],
+              "path": ["Stripe", "webhook"]
+            },
+            "description": "Webhook endpoint for Stripe events (payment_intent.succeeded, payment_intent.payment_failed, etc.)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Test Card Examples",
+      "item": [
+        {
+          "name": "Create Payment Method - Visa Success",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"number\": \"4242424242424242\",\n  \"exp_month\": 12,\n  \"exp_year\": 2025,\n  \"cvc\": \"123\",\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/Stripe/payment-methods",
+              "host": ["{{base_url}}"],
+              "path": ["Stripe", "payment-methods"]
+            },
+            "description": "Test with Visa card that will succeed"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Payment Method - Card Declined",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"number\": \"4000000000000002\",\n  \"exp_month\": 12,\n  \"exp_year\": 2025,\n  \"cvc\": \"123\",\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/Stripe/payment-methods",
+              "host": ["{{base_url}}"],
+              "path": ["Stripe", "payment-methods"]
+            },
+            "description": "Test with card that will be declined"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Payment Method - Insufficient Funds",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"number\": \"4000000000009995\",\n  \"exp_month\": 12,\n  \"exp_year\": 2025,\n  \"cvc\": \"123\",\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/Stripe/payment-methods",
+              "host": ["{{base_url}}"],
+              "path": ["Stripe", "payment-methods"]
+            },
+            "description": "Test with card that will have insufficient funds"
           },
           "response": []
         }
