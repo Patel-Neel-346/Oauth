@@ -240,9 +240,6 @@ export const deletePaymentMethod = asyncHandler(async (req, res, next) => {
   }
 });
 
-/**
- * Update payment method billing details
- */
 export const updatePaymentMethod = asyncHandler(async (req, res, next) => {
   const { paymentMethodId } = req.params;
   const { name, email, phone, address } = req.body;
@@ -332,8 +329,6 @@ export const confirmPayment = asyncHandler(async (req, res) => {
       } catch (bankError) {
         console.error("Bank transaction error:", bankError);
 
-        // Payment succeeded in Stripe but bank transaction failed
-        // You might want to handle this scenario differently
         res.status(200).json({
           success: true,
           message: "Payment confirmed but bank transaction recording failed",
