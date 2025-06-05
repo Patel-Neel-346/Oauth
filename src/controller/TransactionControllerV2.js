@@ -38,8 +38,7 @@ export const DepositFunds = asyncHandler(async (req, res, next) => {
   }
 });
 
-// Stripe Deposit - Create Payment Intent
-export const CreateStripeDeposit = asyncHandler(async (req, res, next) => {
+export const HandleStripePayment = asyncHandler(async (req, res, next) => {
   const {
     accountNumber,
     amount,
@@ -47,6 +46,7 @@ export const CreateStripeDeposit = asyncHandler(async (req, res, next) => {
     paymentMethodId,
     customerData,
     currency = "usd",
+    action = "create", // either "create" or "process"
   } = req.body;
   const userId = req.user;
 
@@ -75,62 +75,22 @@ export const CreateStripeDeposit = asyncHandler(async (req, res, next) => {
       },
     };
 
-    const result = await stripeService.createPaymentIntent(paymentData);
+    const result = await stripeService.handlePayment(paymentData, action);
 
     return res
       .status(200)
-      .json(new ApiRes(200, result, "Payment intent created successfully"));
-  } catch (error) {
-    console.log("Stripe Deposit Error:", error);
-    return next(new ApiError(500, `Stripe Deposit Error: ${error.message}`));
-  }
-});
-
-// Process Stripe Payment
-export const ProcessStripePayment = asyncHandler(async (req, res, next) => {
-  const {
-    accountNumber,
-    amount,
-    description,
-    paymentMethodId,
-    customerData,
-    currency = "usd",
-  } = req.body;
-  const userId = req.user;
-
-  try {
-    const account = await Account.findOne({ accountNumber });
-
-    if (!account) {
-      return next(new ApiError(404, "Account not found"));
-    }
-
-    if (account.userId.toString() !== userId.toString()) {
-      return next(new ApiError(403, "Unauthorized access to account"));
-    }
-
-    const paymentData = {
-      amount: parseFloat(amount),
-      currency,
-      accountId: account._id.toString(),
-      userId,
-      description: description || "Bank Deposit via Stripe",
-      paymentMethodId,
-      customerData,
-      metadata: {
-        deposit_type: "stripe",
-        account_number: accountNumber,
-      },
-    };
-
-    const result = await stripeService.processPayment(paymentData);
-
-    return res
-      .status(200)
-      .json(new ApiRes(200, result, "Payment processed successfully"));
+      .json(
+        new ApiRes(
+          200,
+          result,
+          action === "create"
+            ? "Payment intent created successfully"
+            : "Payment processed successfully"
+        )
+      );
   } catch (error) {
     console.log("Stripe Payment Error:", error);
-    return next(new ApiError(500, `Payment Error: ${error.message}`));
+    return next(new ApiError(500, `Stripe Payment Error: ${error.message}`));
   }
 });
 

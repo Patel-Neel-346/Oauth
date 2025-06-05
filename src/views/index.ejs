@@ -601,7 +601,6 @@
       function showTab(id) {
         tabs.forEach((tab) => tab.classList.remove("active"));
         contents.forEach((content) => content.classList.remove("active"));
-
         document.querySelector(`#${id}`).classList.add("active");
         event.currentTarget.classList.add("active");
       }
@@ -614,28 +613,112 @@
           method === "stripe" ? "block" : "none";
       }
 
-      // Dummy functions for actions
+      // Cash Deposit
       function processCashDeposit() {
         document.getElementById("cashSpinner").style.display = "inline-block";
-        setTimeout(() => alert("Cash deposit processed!"), 1000);
+        setTimeout(() => {
+          document.getElementById("cashSpinner").style.display = "none";
+          alert("Cash deposit processed!");
+        }, 1000);
       }
 
-      function processStripeDeposit() {
-        document.getElementById("stripeSpinner").style.display = "inline-block";
-        // Replace with actual Stripe logic here
-        setTimeout(() => alert("Stripe payment processed!"), 1000);
-      }
-
+      // Withdraw
       function processWithdraw() {
         document.getElementById("withdrawSpinner").style.display =
           "inline-block";
-        setTimeout(() => alert("Withdrawal processed!"), 1000);
+        setTimeout(() => {
+          document.getElementById("withdrawSpinner").style.display = "none";
+          alert("Withdrawal processed!");
+        }, 1000);
       }
 
+      // Transfer
       function processTransfer() {
         document.getElementById("transferSpinner").style.display =
           "inline-block";
-        setTimeout(() => alert("Transfer processed!"), 1000);
+        setTimeout(() => {
+          document.getElementById("transferSpinner").style.display = "none";
+          alert("Transfer processed!");
+        }, 1000);
+      }
+
+      // Stripe Integration
+      let stripe = Stripe(
+        "pk_test_51QfQyYCQkunRa8JYtiDumB6BMWjOwqrYMnp3p14rxHepDcSWALJKrKGp4immlWPAbejkuzGgoJbsIApu8WEbgv0Z00NwDBA5XT"
+      ); // Replace with your actual public Stripe key
+      let elements = stripe.elements();
+      let card = elements.create("card");
+      card.mount("#stripe-card-element");
+
+      async function processStripeDeposit() {
+        document.getElementById("stripeSpinner").style.display = "inline-block";
+
+        const accountNumber = document.getElementById(
+          "depositAccountNumber"
+        ).value;
+        const amount = parseFloat(
+          document.getElementById("depositAmount").value
+        );
+        const description = document.getElementById("depositDescription").value;
+        const name = document.getElementById("cardholderName").value;
+        const email = document.getElementById("cardholderEmail").value;
+        const phone = document.getElementById("cardholderPhone").value;
+
+        try {
+          // Step 1: Create Stripe Payment Method
+          const { paymentMethod, error: pmError } =
+            await stripe.createPaymentMethod({
+              type: "card",
+              card: card,
+              billing_details: {
+                name,
+                email,
+                phone,
+              },
+            });
+
+          if (pmError) {
+            throw new Error(pmError.message);
+          }
+
+          // Step 2: Send payment intent request to backend
+          const response = await fetch("/api/stripe/create-payment-intent", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`, // Optional: if using JWT auth
+            },
+            body: JSON.stringify({
+              accountNumber,
+              amount,
+              description,
+              paymentMethodId: paymentMethod.id,
+              customerData: {
+                name,
+                email,
+                phone,
+              },
+              action: "process", // Let backend know we want to confirm it
+            }),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.message || "Payment failed.");
+          }
+
+          if (result.data?.payment?.status === "succeeded") {
+            alert("Stripe payment successful!");
+          } else {
+            alert("Stripe payment is processing. Check your account shortly.");
+          }
+        } catch (err) {
+          document.getElementById("card-errors").textContent = err.message;
+          console.error("Stripe error:", err);
+        } finally {
+          document.getElementById("stripeSpinner").style.display = "none";
+        }
       }
     </script>
   </body>

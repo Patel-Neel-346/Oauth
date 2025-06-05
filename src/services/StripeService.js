@@ -129,7 +129,7 @@ class StripeService {
     }
   }
 
-  async createPaymentIntent(paymentData) {
+  async handlePayment(paymentData, action = "create") {
     try {
       const {
         amount,
@@ -160,13 +160,15 @@ class StripeService {
 
       const customer = await this.createOrGetCustomer(customerData, userId);
 
+      const confirmPayment = action === "process";
+
       const paymentIntent = await this.stripe.paymentIntents.create({
         amount: Math.round(amount * 100),
         currency: currency.toLowerCase(),
         customer: customer.id,
         payment_method: paymentMethodId,
         description,
-        confirm: paymentMethodId ? true : false,
+        confirm: confirmPayment,
         metadata: {
           account_id: accountId,
           user_id: userId,
@@ -182,10 +184,19 @@ class StripeService {
       const transaction = new Transaction({
         toAccount: accountId,
         amount,
-        type: "deposit",
+        type: action === "process" ? "payment" : "deposit",
         description,
-        status: "pending",
+        status:
+          action === "process"
+            ? paymentIntent.status === "succeeded"
+              ? "completed"
+              : "failed"
+            : "pending",
         reference: `STRIPE_${paymentIntent.id}`,
+        processAt:
+          action === "process" && paymentIntent.status === "succeeded"
+            ? new Date()
+            : null,
         metadata: {
           stripe_payment_intent_id: paymentIntent.id,
           stripe_customer_id: customer.id,
@@ -196,8 +207,14 @@ class StripeService {
 
       await transaction.save();
 
-      return {
-        success: true,
+      if (action === "process" && paymentIntent.status === "succeeded") {
+        account.balance += amount;
+        await account.save();
+      }
+
+      const baseResponse = {
+        success:
+          action === "process" ? paymentIntent.status === "succeeded" : true,
         paymentIntent: {
           id: paymentIntent.id,
           client_secret: paymentIntent.client_secret,
@@ -215,110 +232,20 @@ class StripeService {
           status: transaction.status,
         },
       };
-    } catch (error) {
-      throw new ApiError(
-        500,
-        `Payment intent creation failed: ${error.message}`
-      );
-    }
-  }
 
-  async processPayment(paymentData) {
-    try {
-      const {
-        amount,
-        currency = "usd",
-        accountId,
-        userId,
-        description = "Bank payment",
-        paymentMethodId,
-        customerData,
-        metadata = {},
-      } = paymentData;
-
-      if (!amount || amount <= 0) {
-        throw new ApiError(400, "Payment amount must be greater than zero");
-      }
-
-      const account = await Account.findById(accountId);
-      if (!account) {
-        throw new ApiError(404, "Account not found");
-      }
-
-      if (account.status !== "active") {
-        throw new ApiError(
-          400,
-          `Cannot process payment for ${account.status} account`
-        );
-      }
-
-      const customer = await this.createOrGetCustomer(customerData, userId);
-
-      const paymentIntent = await this.stripe.paymentIntents.create({
-        amount: Math.round(amount * 100),
-        currency: currency.toLowerCase(),
-        customer: customer.id,
-        payment_method: paymentMethodId,
-        description,
-        confirm: true,
-        metadata: {
-          account_id: accountId,
-          user_id: userId,
-          account_number: account.accountNumber,
-          ...metadata,
-        },
-        automatic_payment_methods: {
-          enabled: true,
-          allow_redirects: "never",
-        },
-      });
-
-      const transaction = new Transaction({
-        toAccount: accountId,
-        amount,
-        type: "payment",
-        description,
-        status: paymentIntent.status === "succeeded" ? "completed" : "failed",
-        reference: `STRIPE_${paymentIntent.id}`,
-        processAt: paymentIntent.status === "succeeded" ? new Date() : null,
-        metadata: {
-          stripe_payment_intent_id: paymentIntent.id,
-          stripe_customer_id: customer.id,
-          currency,
-          ...metadata,
-        },
-      });
-
-      await transaction.save();
-
-      if (paymentIntent.status === "succeeded") {
-        account.balance += amount;
-        await account.save();
-      }
-
-      return {
-        success: paymentIntent.status === "succeeded",
-        payment: {
-          id: paymentIntent.id,
-          status: paymentIntent.status,
-          amount: paymentIntent.amount / 100,
-          currency: paymentIntent.currency,
-        },
-        transaction: {
-          id: transaction._id,
-          reference: transaction.reference,
-          status: transaction.status,
-        },
-        account: {
+      if (action === "process") {
+        baseResponse.account = {
           accountNumber: account.accountNumber,
           newBalance: account.balance,
-        },
-      };
+        };
+      }
+
+      return baseResponse;
     } catch (error) {
       if (error.type === "StripeCardError") {
         throw new ApiError(400, `Card error: ${error.message}`);
       }
-      throw new ApiError(500, `Payment processing failed: ${error.message}`);
+      throw new ApiError(500, `Stripe Payment failed: ${error.message}`);
     }
   }
 
