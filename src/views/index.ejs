@@ -141,12 +141,17 @@
         gap: 10px;
       }
 
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
       .btn-primary {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
       }
 
-      .btn-primary:hover {
+      .btn-primary:hover:not(:disabled) {
         transform: translateY(-2px);
         box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
       }
@@ -156,7 +161,7 @@
         color: white;
       }
 
-      .btn-success:hover {
+      .btn-success:hover:not(:disabled) {
         transform: translateY(-2px);
         box-shadow: 0 10px 20px rgba(86, 171, 47, 0.3);
       }
@@ -166,41 +171,9 @@
         color: white;
       }
 
-      .btn-warning:hover {
+      .btn-warning:hover:not(:disabled) {
         transform: translateY(-2px);
         box-shadow: 0 10px 20px rgba(245, 87, 108, 0.3);
-      }
-
-      .payment-method-card {
-        border: 2px solid #e9ecef;
-        border-radius: 15px;
-        padding: 20px;
-        margin-bottom: 20px;
-        transition: all 0.3s ease;
-      }
-
-      .payment-method-card:hover {
-        border-color: #667eea;
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
-      }
-
-      .card-info {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-      }
-
-      .card-brand {
-        width: 40px;
-        height: 25px;
-        background: #2c3e50;
-        border-radius: 5px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 0.8rem;
-        font-weight: bold;
       }
 
       .alert {
@@ -208,6 +181,22 @@
         border-radius: 10px;
         margin-bottom: 20px;
         display: none;
+      }
+
+      .alert.show {
+        display: block;
+        animation: slideIn 0.3s ease;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
       }
 
       .alert-success {
@@ -261,18 +250,110 @@
         }
       }
 
-      #stripe-card-element {
-        padding: 15px;
-        border: 2px solid #e9ecef;
-        border-radius: 10px;
-        background: white;
+      /* Stripe Modal Styles */
+      .stripe-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        backdrop-filter: blur(5px);
       }
 
-      .stripe-form {
-        background: #f8f9fa;
-        padding: 30px;
+      .stripe-modal.active {
+        display: flex;
+        animation: modalFadeIn 0.3s ease;
+      }
+
+      @keyframes modalFadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .stripe-modal-content {
+        background: white;
         border-radius: 15px;
+        width: 90%;
+        max-width: 500px;
+        padding: 30px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        position: relative;
+        animation: modalSlideIn 0.3s ease;
+      }
+
+      @keyframes modalSlideIn {
+        from {
+          transform: translateY(-50px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .stripe-modal-close {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #6c757d;
+        transition: color 0.3s ease;
+      }
+
+      .stripe-modal-close:hover {
+        color: #343a40;
+      }
+
+      .stripe-modal h2 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      .stripe-modal-body {
         margin-top: 20px;
+      }
+
+      #stripe-payment-element {
+        margin-bottom: 20px;
+        min-height: 200px;
+      }
+
+      .payment-summary {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+      }
+
+      .payment-summary h3 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+      }
+
+      .payment-details {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+
+      .payment-details:last-child {
+        margin-bottom: 0;
+        font-weight: 600;
+        font-size: 1.1rem;
       }
 
       .transaction-list {
@@ -287,6 +368,12 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        transition: transform 0.2s ease;
+      }
+
+      .transaction-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
       }
 
       .transaction-type {
@@ -308,6 +395,30 @@
       .type-transfer {
         background: #d1ecf1;
         color: #0c5460;
+      }
+
+      .stripe-secure-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 15px;
+        color: #6c757d;
+        font-size: 0.9rem;
+      }
+
+      .demo-notice {
+        background: #fff3cd;
+        color: #856404;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #ffeaa7;
+      }
+
+      .demo-notice strong {
+        display: block;
+        margin-bottom: 5px;
       }
     </style>
   </head>
@@ -336,6 +447,13 @@
       <div class="content">
         <div id="alerts"></div>
 
+        <!-- Demo Notice -->
+        <div class="demo-notice">
+          <strong><i class="fas fa-info-circle"></i> Demo Mode</strong>
+          This is a demo implementation. Use test card number 4242 4242 4242
+          4242 for testing Stripe payments.
+        </div>
+
         <!-- Deposit Tab -->
         <div id="deposit" class="tab-content active">
           <h2><i class="fas fa-plus-circle"></i> Deposit Funds</h2>
@@ -348,6 +466,7 @@
                   type="text"
                   id="depositAccountNumber"
                   class="form-control"
+                  placeholder="Enter account number"
                   required
                 />
               </div>
@@ -359,6 +478,7 @@
                   class="form-control"
                   step="0.01"
                   min="1"
+                  placeholder="0.00"
                   required
                 />
               </div>
@@ -392,6 +512,7 @@
                 type="button"
                 class="btn btn-success"
                 onclick="processCashDeposit()"
+                id="cashDepositBtn"
               >
                 <i class="fas fa-money-bill-wave"></i>
                 <span>Process Cash Deposit</span>
@@ -411,6 +532,7 @@
                       type="text"
                       id="cardholderName"
                       class="form-control"
+                      placeholder="John Doe"
                       required
                     />
                   </div>
@@ -420,30 +542,27 @@
                       type="email"
                       id="cardholderEmail"
                       class="form-control"
+                      placeholder="john@example.com"
                       required
                     />
                   </div>
                 </div>
 
                 <div class="form-group">
-                  <label>Phone</label>
-                  <input type="tel" id="cardholderPhone" class="form-control" />
-                </div>
-
-                <div class="form-group">
-                  <label>Card Information</label>
-                  <div id="stripe-card-element"></div>
-                  <div
-                    id="card-errors"
-                    role="alert"
-                    style="color: #721c24; margin-top: 10px"
-                  ></div>
+                  <label>Phone (Optional)</label>
+                  <input
+                    type="tel"
+                    id="cardholderPhone"
+                    class="form-control"
+                    placeholder="+1 (555) 123-4567"
+                  />
                 </div>
 
                 <button
                   type="button"
                   class="btn btn-primary"
-                  onclick="processStripeDeposit()"
+                  onclick="showStripeModal()"
+                  id="stripeDepositBtn"
                 >
                   <i class="fab fa-stripe-s"></i>
                   <span>Pay with Stripe</span>
@@ -466,6 +585,7 @@
                   type="text"
                   id="withdrawAccountNumber"
                   class="form-control"
+                  placeholder="Enter account number"
                   required
                 />
               </div>
@@ -477,6 +597,7 @@
                   class="form-control"
                   step="0.01"
                   min="1"
+                  placeholder="0.00"
                   required
                 />
               </div>
@@ -496,6 +617,7 @@
               type="button"
               class="btn btn-warning"
               onclick="processWithdraw()"
+              id="withdrawBtn"
             >
               <i class="fas fa-money-bill-wave"></i>
               <span>Process Withdrawal</span>
@@ -516,6 +638,7 @@
                   type="text"
                   id="fromAccountNumber"
                   class="form-control"
+                  placeholder="Source account"
                   required
                 />
               </div>
@@ -525,6 +648,7 @@
                   type="text"
                   id="toAccountNumber"
                   class="form-control"
+                  placeholder="Destination account"
                   required
                 />
               </div>
@@ -538,11 +662,12 @@
                 class="form-control"
                 step="0.01"
                 min="1"
+                placeholder="0.00"
                 required
               />
             </div>
 
-            <div <div class="form-group">
+            <div class="form-group">
               <label>Description</label>
               <input
                 type="text"
@@ -556,6 +681,7 @@
               type="button"
               class="btn btn-primary"
               onclick="processTransfer()"
+              id="transferBtn"
             >
               <i class="fas fa-exchange-alt"></i>
               <span>Process Transfer</span>
@@ -569,89 +695,545 @@
           <h2><i class="fas fa-history"></i> Transaction History</h2>
 
           <div class="transaction-list" id="transactionList">
-            <% if (transactions && transactions.length > 0) { %> <%
-            transactions.forEach(transaction => { %>
+            <!-- Sample transactions for demo -->
             <div class="transaction-item">
               <div>
-                <strong><%= transaction.type %></strong> - $<%=
-                transaction.amount %>
+                <strong>Deposit</strong> - $500.00
                 <br />
-                <small><%= transaction.date %></small>
+                <small>2024-01-15 10:30 AM</small>
                 <br />
-                <%= transaction.description %>
+                Stripe payment deposit
               </div>
-              <span
-                class="transaction-type type-<%= transaction.type.toLowerCase() %>"
-              >
-                <%= transaction.type %>
-              </span>
+              <span class="transaction-type type-deposit">Deposit</span>
             </div>
-            <% }) %> <% } else { %>
-            <p>No transactions found.</p>
-            <% } %>
+
+            <div class="transaction-item">
+              <div>
+                <strong>Withdrawal</strong> - $100.00
+                <br />
+                <small>2024-01-14 02:15 PM</small>
+                <br />
+                ATM withdrawal
+              </div>
+              <span class="transaction-type type-withdrawal">Withdrawal</span>
+            </div>
+
+            <div class="transaction-item">
+              <div>
+                <strong>Transfer</strong> - $250.00
+                <br />
+                <small>2024-01-13 09:45 AM</small>
+                <br />
+                Transfer to savings account
+              </div>
+              <span class="transaction-type type-transfer">Transfer</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <script>
-      const tabs = document.querySelectorAll(".tab");
-      const contents = document.querySelectorAll(".tab-content");
+    <!-- Stripe Payment Modal -->
+    <div class="stripe-modal" id="stripeModal">
+      <div class="stripe-modal-content">
+        <button class="stripe-modal-close" onclick="closeStripeModal()">
+          &times;
+        </button>
+        <h2><i class="fab fa-stripe"></i> Complete Payment</h2>
 
+        <div class="payment-summary" id="paymentSummary">
+          <h3>Payment Summary</h3>
+          <div class="payment-details">
+            <span>Account:</span>
+            <span id="summaryAccount">-</span>
+          </div>
+          <div class="payment-details">
+            <span>Description:</span>
+            <span id="summaryDescription">-</span>
+          </div>
+          <div class="payment-details">
+            <span>Total Amount:</span>
+            <span id="summaryAmount">$0.00</span>
+          </div>
+        </div>
+
+        <div class="stripe-modal-body">
+          <div id="stripe-payment-element"></div>
+
+          <button
+            id="stripe-submit-button"
+            class="btn btn-primary"
+            onclick="handleStripePayment()"
+            style="width: 100%"
+          >
+            <i class="fas fa-lock"></i>
+            <span>Pay Now</span>
+            <div class="spinner" id="stripeModalSpinner"></div>
+          </button>
+
+          <div class="stripe-secure-badge">
+            <i class="fas fa-shield-alt"></i>
+            <span>Secured by Stripe</span>
+          </div>
+
+          <div id="stripe-payment-message" style="display: none"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Banking Transaction System - Updated Version
+      // Configuration
+      const API_BASE_URL = "http://localhost:7000"; // Your API base URL
+      const STRIPE_PUBLIC_KEY =
+        "pk_test_51QfQyYCQkunRa8JYtiDumB6BMWjOwqrYMnp3p14rxHepDcSWALJKrKGp4immlWPAbejkuzGgoJbsIApu8WEbgv0Z00NwDBA5XT";
+
+      // Global variables
+      let stripe;
+      let elements;
+      let paymentElement;
+      let paymentIntentClientSecret;
+      let transactions = [];
+
+      // Initialize Stripe on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        initializeStripe();
+        checkPaymentStatus();
+        loadTransactions();
+        setupEventListeners();
+      });
+
+      // Initialize Stripe
+      async function initializeStripe() {
+        try {
+          if (typeof Stripe === "undefined") {
+            console.warn(
+              "Stripe.js not loaded. Card payments will be unavailable."
+            );
+            return;
+          }
+
+          stripe = Stripe(STRIPE_PUBLIC_KEY);
+          console.log("Stripe initialized successfully");
+        } catch (error) {
+          console.error("Stripe initialization failed:", error);
+          showAlert(
+            "Stripe initialization failed. Card payments unavailable.",
+            "error"
+          );
+        }
+      }
+
+      // Setup event listeners
+      function setupEventListeners() {
+        // Format account number inputs
+        const accountInputs = document.querySelectorAll(
+          'input[id*="AccountNumber"]'
+        );
+        accountInputs.forEach((input) => {
+          input.addEventListener("input", function (e) {
+            e.target.value = e.target.value.replace(/\D/g, "").slice(0, 12);
+          });
+        });
+
+        // Format amount inputs
+        const amountInputs = document.querySelectorAll('input[type="number"]');
+        amountInputs.forEach((input) => {
+          input.addEventListener("blur", function (e) {
+            if (e.target.value) {
+              const value = parseFloat(e.target.value);
+              if (!isNaN(value)) {
+                e.target.value = value.toFixed(2);
+              }
+            }
+          });
+        });
+
+        // Format phone input
+        const phoneInput = document.getElementById("cardholderPhone");
+        if (phoneInput) {
+          phoneInput.addEventListener("input", function (e) {
+            let value = e.target.value.replace(/\D/g, "");
+            if (value.length >= 10) {
+              value = value.slice(0, 10);
+              e.target.value = `(${value.slice(0, 3)}) ${value.slice(
+                3,
+                6
+              )}-${value.slice(6)}`;
+            }
+          });
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener("keydown", function (e) {
+          // Ctrl+1,2,3,4 for tab switching
+          if (e.ctrlKey && e.key >= "1" && e.key <= "4") {
+            e.preventDefault();
+            const tabs = ["deposit", "withdraw", "transfer", "history"];
+            const tabIndex = parseInt(e.key) - 1;
+            if (tabs[tabIndex]) {
+              showTab(tabs[tabIndex]);
+              document
+                .querySelector(`[onclick="showTab('${tabs[tabIndex]}')"]`)
+                ?.classList.add("active");
+            }
+          }
+
+          // Escape to close modal
+          if (e.key === "Escape") {
+            closeStripeModal();
+          }
+        });
+      }
+
+      // Utility functions
+      function showAlert(message, type = "success") {
+        const alertsContainer = document.getElementById("alerts");
+        if (!alertsContainer) return;
+
+        const alertDiv = document.createElement("div");
+        alertDiv.className = `alert alert-${type} show`;
+        alertDiv.innerHTML = `
+    <i class="fas fa-${
+      type === "success" ? "check-circle" : "exclamation-triangle"
+    }"></i>
+    ${message}
+    <button onclick="this.parentElement.remove()" style="float: right; background: none; border: none; cursor: pointer; font-size: 1.2rem;">&times;</button>
+  `;
+        alertsContainer.appendChild(alertDiv);
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+          if (alertDiv.parentNode) {
+            alertDiv.remove();
+          }
+        }, 5000);
+      }
+
+      function setLoading(buttonId, spinnerId, isLoading) {
+        const button = document.getElementById(buttonId);
+        const spinner = document.getElementById(spinnerId);
+
+        if (button) {
+          button.disabled = isLoading;
+        }
+
+        if (spinner) {
+          spinner.style.display = isLoading ? "inline-block" : "none";
+        }
+      }
+
+      function formatCurrency(amount) {
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+        }).format(amount);
+      }
+
+      function getCurrentDateTime() {
+        return new Date().toLocaleString("en-US", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        });
+      }
+
+      // Enhanced API call function with better error handling
+      async function makeAPICall(endpoint, options = {}) {
+        try {
+          // Simulate API delay for demo
+          await new Promise((resolve) =>
+            setTimeout(resolve, Math.random() * 1000 + 500)
+          );
+
+          // Check if we're in demo mode
+          const isDemoMode =
+            API_BASE_URL.includes("localhost") || !navigator.onLine;
+
+          if (isDemoMode) {
+            // Return mock responses for demo
+            return getMockResponse(endpoint, options);
+          }
+
+          // In production, make actual API call
+          const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            headers: {
+              "Content-Type": "application/json",
+              ...options.headers,
+            },
+            ...options,
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          return await response.json();
+        } catch (error) {
+          console.error("API call failed:", error);
+          throw error;
+        }
+      }
+
+      // Mock response generator for demo mode
+      function getMockResponse(endpoint, options) {
+        if (endpoint.includes("create-payment-intent")) {
+          return {
+            clientSecret:
+              "pi_test_" +
+              Math.random().toString(36).substr(2, 9) +
+              "_secret_test",
+            paymentIntentId:
+              "pi_test_" + Math.random().toString(36).substr(2, 9),
+          };
+        }
+
+        // Simulate occasional failures for realistic testing
+        if (Math.random() < 0.1) {
+          return {
+            success: false,
+            error: "Insufficient funds or invalid account",
+          };
+        }
+
+        return {
+          success: true,
+          transactionId: "txn_" + Math.random().toString(36).substr(2, 9),
+          account: {
+            accountNumber: "12345678",
+            newBalance: Math.floor(Math.random() * 10000) + 1000,
+          },
+        };
+      }
+
+      // Tab functionality
       function showTab(id) {
+        const tabs = document.querySelectorAll(".tab");
+        const contents = document.querySelectorAll(".tab-content");
+
         tabs.forEach((tab) => tab.classList.remove("active"));
         contents.forEach((content) => content.classList.remove("active"));
-        document.querySelector(`#${id}`).classList.add("active");
-        event.currentTarget.classList.add("active");
+
+        const targetContent = document.querySelector(`#${id}`);
+        if (targetContent) {
+          targetContent.classList.add("active");
+        }
+
+        // Find and activate the corresponding tab button
+        const tabButton = document.querySelector(
+          `[onclick="showTab('${id}')"]`
+        );
+        if (tabButton) {
+          tabButton.classList.add("active");
+        }
       }
 
       function toggleDepositMethod() {
-        const method = document.getElementById("depositMethod").value;
-        document.getElementById("cashDeposit").style.display =
-          method === "cash" ? "block" : "none";
-        document.getElementById("stripeDeposit").style.display =
-          method === "stripe" ? "block" : "none";
+        const method = document.getElementById("depositMethod")?.value;
+        const cashDeposit = document.getElementById("cashDeposit");
+        const stripeDeposit = document.getElementById("stripeDeposit");
+
+        if (cashDeposit && stripeDeposit) {
+          cashDeposit.style.display = method === "cash" ? "block" : "none";
+          stripeDeposit.style.display = method === "stripe" ? "block" : "none";
+        }
       }
 
-      // Cash Deposit
-      function processCashDeposit() {
-        document.getElementById("cashSpinner").style.display = "inline-block";
-        setTimeout(() => {
-          document.getElementById("cashSpinner").style.display = "none";
-          alert("Cash deposit processed!");
-        }, 1000);
+      // Transaction management
+      function addTransaction(
+        type,
+        amount,
+        description,
+        accountNumber,
+        toAccount = null
+      ) {
+        const transaction = {
+          id: "txn_" + Math.random().toString(36).substr(2, 9),
+          type,
+          amount: parseFloat(amount),
+          description,
+          accountNumber,
+          toAccount,
+          timestamp: getCurrentDateTime(),
+          status: "completed",
+        };
+
+        transactions.unshift(transaction);
+        updateTransactionHistory();
+        return transaction;
       }
 
-      // Withdraw
-      function processWithdraw() {
-        document.getElementById("withdrawSpinner").style.display =
-          "inline-block";
-        setTimeout(() => {
-          document.getElementById("withdrawSpinner").style.display = "none";
-          alert("Withdrawal processed!");
-        }, 1000);
+      function updateTransactionHistory() {
+        const transactionList = document.getElementById("transactionList");
+        if (!transactionList) return;
+
+        transactionList.innerHTML = "";
+
+        if (transactions.length === 0) {
+          transactionList.innerHTML =
+            '<p class="text-center text-muted">No transactions found.</p>';
+          return;
+        }
+
+        transactions.forEach((transaction) => {
+          const transactionItem = document.createElement("div");
+          transactionItem.className = "transaction-item";
+
+          const typeClass = "type-" + transaction.type;
+          const typeDisplay =
+            transaction.type.charAt(0).toUpperCase() +
+            transaction.type.slice(1);
+          let details = transaction.description;
+
+          if (transaction.type === "transfer") {
+            details += ` (From: ${transaction.accountNumber} To: ${transaction.toAccount})`;
+          } else {
+            details += ` (Account: ${transaction.accountNumber})`;
+          }
+
+          transactionItem.innerHTML = `
+      <div>
+        <strong>${typeDisplay}</strong> - ${formatCurrency(transaction.amount)}
+        <br />
+        <small class="text-muted">${transaction.timestamp}</small>
+        <br />
+        <span class="text-secondary">${details}</span>
+      </div>
+      <span class="transaction-type ${typeClass}">${typeDisplay}</span>
+    `;
+
+          transactionList.appendChild(transactionItem);
+        });
       }
 
-      // Transfer
-      function processTransfer() {
-        document.getElementById("transferSpinner").style.display =
-          "inline-block";
-        setTimeout(() => {
-          document.getElementById("transferSpinner").style.display = "none";
-          alert("Transfer processed!");
-        }, 1000);
+      function loadTransactions() {
+        // Load sample transactions for demo
+        const sampleTransactions = [
+          {
+            id: "txn_sample1",
+            type: "deposit",
+            amount: 500.0,
+            description: "Stripe payment deposit",
+            accountNumber: "12345678",
+            timestamp: "2024-01-15 10:30 AM",
+            status: "completed",
+          },
+          {
+            id: "txn_sample2",
+            type: "withdrawal",
+            amount: 100.0,
+            description: "ATM withdrawal",
+            accountNumber: "12345678",
+            timestamp: "2024-01-14 02:15 PM",
+            status: "completed",
+          },
+          {
+            id: "txn_sample3",
+            type: "transfer",
+            amount: 250.0,
+            description: "Transfer to savings account",
+            accountNumber: "12345678",
+            toAccount: "87654321",
+            timestamp: "2024-01-13 09:45 AM",
+            status: "completed",
+          },
+        ];
+
+        transactions = sampleTransactions;
+        updateTransactionHistory();
       }
 
-      // Stripe Integration
-      let stripe = Stripe(
-        "pk_test_51QfQyYCQkunRa8JYtiDumB6BMWjOwqrYMnp3p14rxHepDcSWALJKrKGp4immlWPAbejkuzGgoJbsIApu8WEbgv0Z00NwDBA5XT"
-      ); // Replace with your actual public Stripe key
-      let elements = stripe.elements();
-      let card = elements.create("card");
-      card.mount("#stripe-card-element");
+      // Validation functions
+      function validateAccountNumber(accountNumber) {
+        const accountRegex = /^\d{8,12}$/;
+        return accountRegex.test(accountNumber);
+      }
 
-      async function processStripeDeposit() {
-        document.getElementById("stripeSpinner").style.display = "inline-block";
+      function validateDepositForm() {
+        const accountNumber = document.getElementById(
+          "depositAccountNumber"
+        )?.value;
+        const amount = parseFloat(
+          document.getElementById("depositAmount")?.value
+        );
+
+        if (!validateAccountNumber(accountNumber)) {
+          showAlert("Account number must be 8-12 digits.", "error");
+          return false;
+        }
+
+        if (!amount || amount <= 0 || amount > 50000) {
+          showAlert("Amount must be between $0.01 and $50,000.", "error");
+          return false;
+        }
+
+        return true;
+      }
+
+      function validateWithdrawForm() {
+        const accountNumber = document.getElementById(
+          "withdrawAccountNumber"
+        )?.value;
+        const amount = parseFloat(
+          document.getElementById("withdrawAmount")?.value
+        );
+
+        if (!validateAccountNumber(accountNumber)) {
+          showAlert("Account number must be 8-12 digits.", "error");
+          return false;
+        }
+
+        if (!amount || amount <= 0 || amount > 10000) {
+          showAlert(
+            "Withdrawal amount must be between $0.01 and $10,000.",
+            "error"
+          );
+          return false;
+        }
+
+        return true;
+      }
+
+      function validateTransferForm() {
+        const fromAccount = document.getElementById("fromAccountNumber")?.value;
+        const toAccount = document.getElementById("toAccountNumber")?.value;
+        const amount = parseFloat(
+          document.getElementById("transferAmount")?.value
+        );
+
+        if (
+          !validateAccountNumber(fromAccount) ||
+          !validateAccountNumber(toAccount)
+        ) {
+          showAlert("Both account numbers must be 8-12 digits.", "error");
+          return false;
+        }
+
+        if (fromAccount === toAccount) {
+          showAlert(
+            "Source and destination accounts cannot be the same.",
+            "error"
+          );
+          return false;
+        }
+
+        if (!amount || amount <= 0 || amount > 25000) {
+          showAlert(
+            "Transfer amount must be between $0.01 and $25,000.",
+            "error"
+          );
+          return false;
+        }
+
+        return true;
+      }
+
+      // Transaction processing functions
+      async function processCashDeposit() {
+        if (!validateDepositForm()) return;
 
         const accountNumber = document.getElementById(
           "depositAccountNumber"
@@ -659,70 +1241,610 @@
         const amount = parseFloat(
           document.getElementById("depositAmount").value
         );
-        const description = document.getElementById("depositDescription").value;
-        const name = document.getElementById("cardholderName").value;
-        const email = document.getElementById("cardholderEmail").value;
-        const phone = document.getElementById("cardholderPhone").value;
+        const description =
+          document.getElementById("depositDescription").value || "Cash deposit";
+
+        setLoading("cashDepositBtn", "cashSpinner", true);
 
         try {
-          // Step 1: Create Stripe Payment Method
-          const { paymentMethod, error: pmError } =
-            await stripe.createPaymentMethod({
-              type: "card",
-              card: card,
-              billing_details: {
-                name,
-                email,
-                phone,
+          const response = await makeAPICall("/transaction/cash-deposit", {
+            method: "POST",
+            body: JSON.stringify({
+              accountNumber,
+              amount,
+              description,
+            }),
+          });
+
+          if (response.success) {
+            addTransaction("deposit", amount, description, accountNumber);
+            showAlert(
+              `Cash deposit of ${formatCurrency(
+                amount
+              )} processed successfully!`,
+              "success"
+            );
+
+            // Clear form
+            document.getElementById("depositForm")?.reset();
+          } else {
+            showAlert(
+              response.error || "Cash deposit failed. Please try again.",
+              "error"
+            );
+          }
+        } catch (error) {
+          console.error("Cash deposit error:", error);
+          showAlert("An error occurred while processing the deposit.", "error");
+        } finally {
+          setLoading("cashDepositBtn", "cashSpinner", false);
+        }
+      }
+
+      async function processWithdraw() {
+        if (!validateWithdrawForm()) return;
+
+        const accountNumber = document.getElementById(
+          "withdrawAccountNumber"
+        ).value;
+        const amount = parseFloat(
+          document.getElementById("withdrawAmount").value
+        );
+        const description =
+          document.getElementById("withdrawDescription").value ||
+          "Cash withdrawal";
+
+        setLoading("withdrawBtn", "withdrawSpinner", true);
+
+        try {
+          const response = await makeAPICall("/transaction/withdraw", {
+            method: "POST",
+            body: JSON.stringify({
+              accountNumber,
+              amount,
+              description,
+            }),
+          });
+
+          if (response.success) {
+            addTransaction("withdrawal", amount, description, accountNumber);
+            showAlert(
+              `Withdrawal of ${formatCurrency(amount)} processed successfully!`,
+              "success"
+            );
+
+            // Clear form
+            document.getElementById("withdrawForm")?.reset();
+          } else {
+            showAlert(
+              response.error ||
+                "Withdrawal failed. Please check account balance and try again.",
+              "error"
+            );
+          }
+        } catch (error) {
+          console.error("Withdrawal error:", error);
+          showAlert(
+            "An error occurred while processing the withdrawal.",
+            "error"
+          );
+        } finally {
+          setLoading("withdrawBtn", "withdrawSpinner", false);
+        }
+      }
+
+      async function processTransfer() {
+        if (!validateTransferForm()) return;
+
+        const fromAccount = document.getElementById("fromAccountNumber").value;
+        const toAccount = document.getElementById("toAccountNumber").value;
+        const amount = parseFloat(
+          document.getElementById("transferAmount").value
+        );
+        const description =
+          document.getElementById("transferDescription").value ||
+          "Account transfer";
+
+        setLoading("transferBtn", "transferSpinner", true);
+
+        try {
+          const response = await makeAPICall("/transaction/transfer", {
+            method: "POST",
+            body: JSON.stringify({
+              fromAccount,
+              toAccount,
+              amount,
+              description,
+            }),
+          });
+
+          if (response.success) {
+            addTransaction(
+              "transfer",
+              amount,
+              description,
+              fromAccount,
+              toAccount
+            );
+            showAlert(
+              `Transfer of ${formatCurrency(amount)} processed successfully!`,
+              "success"
+            );
+
+            // Clear form
+            document.getElementById("transferForm")?.reset();
+          } else {
+            showAlert(
+              response.error ||
+                "Transfer failed. Please check account details and balance.",
+              "error"
+            );
+          }
+        } catch (error) {
+          console.error("Transfer error:", error);
+          showAlert(
+            "An error occurred while processing the transfer.",
+            "error"
+          );
+        } finally {
+          setLoading("transferBtn", "transferSpinner", false);
+        }
+      }
+
+      // Stripe payment functions
+      function showStripeModal() {
+        if (!stripe) {
+          showAlert(
+            "Stripe not available. Please refresh the page or use cash deposit.",
+            "error"
+          );
+          return;
+        }
+
+        const accountNumber = document.getElementById(
+          "depositAccountNumber"
+        )?.value;
+        const amount = parseFloat(
+          document.getElementById("depositAmount")?.value
+        );
+        const description =
+          document.getElementById("depositDescription")?.value ||
+          "Card deposit";
+        const cardholderName = document.getElementById("cardholderName")?.value;
+        const cardholderEmail =
+          document.getElementById("cardholderEmail")?.value;
+
+        // Validation
+        if (
+          !accountNumber ||
+          !amount ||
+          amount <= 0 ||
+          !cardholderName ||
+          !cardholderEmail
+        ) {
+          showAlert(
+            "Please fill in all required fields before proceeding with payment.",
+            "error"
+          );
+          return;
+        }
+
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(cardholderEmail)) {
+          showAlert("Please enter a valid email address.", "error");
+          return;
+        }
+
+        // Update payment summary
+        const summaryAccount = document.getElementById("summaryAccount");
+        const summaryDescription =
+          document.getElementById("summaryDescription");
+        const summaryAmount = document.getElementById("summaryAmount");
+
+        if (summaryAccount) summaryAccount.textContent = accountNumber;
+        if (summaryDescription) summaryDescription.textContent = description;
+        if (summaryAmount) summaryAmount.textContent = formatCurrency(amount);
+
+        // Show modal
+        const modal = document.getElementById("stripeModal");
+        if (modal) {
+          modal.style.display = "flex";
+          initializeStripePayment(amount, cardholderEmail, cardholderName);
+        }
+      }
+
+      function closeStripeModal() {
+        const modal = document.getElementById("stripeModal");
+        if (modal) {
+          modal.style.display = "none";
+        }
+
+        // Clean up Stripe elements
+        if (elements) {
+          elements = null;
+          paymentElement = null;
+        }
+
+        // Clear any error messages
+        const messageElement = document.getElementById(
+          "stripe-payment-message"
+        );
+        if (messageElement) {
+          messageElement.style.display = "none";
+          messageElement.textContent = "";
+        }
+      }
+
+      async function initializeStripePayment(amount, email, name) {
+        if (!stripe) {
+          showAlert(
+            "Stripe not initialized. Please refresh the page.",
+            "error"
+          );
+          return;
+        }
+
+        try {
+          const isDemoMode =
+            API_BASE_URL.includes("localhost") || !navigator.onLine;
+
+          if (isDemoMode) {
+            // Demo mode - create elements without payment intent for testing
+            elements = stripe.elements({
+              mode: "payment",
+              amount: Math.round(amount * 100),
+              currency: "usd",
+              appearance: {
+                theme: "stripe",
+                variables: {
+                  colorPrimary: "#007bff",
+                  colorBackground: "#ffffff",
+                  colorText: "#333333",
+                  colorDanger: "#dc3545",
+                  fontFamily: "Segoe UI, Tahoma, Geneva, Verdana, sans-serif",
+                  spacingUnit: "4px",
+                  borderRadius: "8px",
+                },
               },
             });
 
-          if (pmError) {
-            throw new Error(pmError.message);
+            paymentIntentClientSecret = "demo_mode";
+          } else {
+            // Production mode - create real payment intent
+            const response = await makeAPICall("/create-payment-intent", {
+              method: "POST",
+              body: JSON.stringify({
+                amount: Math.round(amount * 100),
+                currency: "usd",
+                customer_email: email,
+                customer_name: name,
+              }),
+            });
+
+            paymentIntentClientSecret = response.clientSecret;
+
+            elements = stripe.elements({
+              clientSecret: paymentIntentClientSecret,
+              appearance: {
+                theme: "stripe",
+                variables: {
+                  colorPrimary: "#007bff",
+                  colorBackground: "#ffffff",
+                  colorText: "#333333",
+                  colorDanger: "#dc3545",
+                  fontFamily: "Segoe UI, Tahoma, Geneva, Verdana, sans-serif",
+                  spacingUnit: "4px",
+                  borderRadius: "8px",
+                },
+              },
+            });
           }
 
-          // Step 2: Send payment intent request to backend
-          const response = await fetch(
-            "http://localhost:7000/stripe/stripe/create-payment-intent",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("token")}`, // Optional: if using JWT auth
-              },
-              body: JSON.stringify({
-                accountNumber,
-                amount,
-                description,
-                paymentMethodId: paymentMethod.id,
-                customerData: {
-                  name,
-                  email,
-                  phone,
-                },
-                action: "process", // Let backend know we want to confirm it
-              }),
-            }
+          // Create payment element
+          paymentElement = elements.create("payment");
+          const paymentElementContainer = document.getElementById(
+            "stripe-payment-element"
           );
 
-          const result = await response.json();
-
-          if (!response.ok) {
-            throw new Error(result.message || "Payment failed.");
+          if (paymentElementContainer) {
+            paymentElement.mount("#stripe-payment-element");
           }
 
-          if (result.data?.payment?.status === "succeeded") {
-            alert("Stripe payment successful!");
-          } else {
-            alert("Stripe payment is processing. Check your account shortly.");
-          }
-        } catch (err) {
-          document.getElementById("card-errors").textContent = err.message;
-          console.error("Stripe error:", err);
-        } finally {
-          document.getElementById("stripeSpinner").style.display = "none";
+          // Handle payment element events
+          paymentElement.on("ready", () => {
+            console.log(
+              "Payment Element ready" + (isDemoMode ? " (Demo Mode)" : "")
+            );
+          });
+
+          paymentElement.on("change", (event) => {
+            const messageElement = document.getElementById(
+              "stripe-payment-message"
+            );
+            if (messageElement) {
+              if (event.error) {
+                messageElement.textContent = event.error.message;
+                messageElement.style.display = "block";
+              } else {
+                messageElement.style.display = "none";
+              }
+            }
+          });
+        } catch (error) {
+          console.error("Stripe initialization error:", error);
+          showAlert("Failed to initialize payment. Please try again.", "error");
+          closeStripeModal();
         }
       }
+
+      async function handleStripePayment() {
+        if (!stripe || !elements || !paymentIntentClientSecret) {
+          showAlert(
+            "Payment not properly initialized. Please close and try again.",
+            "error"
+          );
+          return;
+        }
+
+        const submitButton = document.getElementById("stripe-submit-button");
+        const spinner = document.getElementById("stripeModalSpinner");
+        const messageElement = document.getElementById(
+          "stripe-payment-message"
+        );
+
+        // Show loading state
+        if (submitButton) submitButton.disabled = true;
+        if (spinner) spinner.style.display = "inline-block";
+        if (messageElement) messageElement.style.display = "none";
+
+        try {
+          // In demo mode, simulate successful payment
+          if (paymentIntentClientSecret === "demo_mode") {
+            // Simulate processing time
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+
+            // Simulate successful payment
+            const accountNumber = document.getElementById(
+              "depositAccountNumber"
+            ).value;
+            const amount = parseFloat(
+              document.getElementById("depositAmount").value
+            );
+            const description =
+              document.getElementById("depositDescription").value ||
+              "Card deposit";
+
+            addTransaction(
+              "deposit",
+              amount,
+              `${description} (Demo Stripe Payment)`,
+              accountNumber
+            );
+            showAlert(
+              `Demo card deposit of ${formatCurrency(
+                amount
+              )} processed successfully!`,
+              "success"
+            );
+
+            document.getElementById("depositForm")?.reset();
+            closeStripeModal();
+            return;
+          }
+
+          // Production mode - actual Stripe payment
+          const { error, paymentIntent } = await stripe.confirmPayment({
+            elements,
+            confirmParams: {
+              return_url: window.location.href,
+            },
+            redirect: "if_required",
+          });
+
+          if (error) {
+            if (messageElement) {
+              messageElement.textContent = error.message;
+              messageElement.style.display = "block";
+            }
+            console.error("Payment error:", error);
+          } else if (paymentIntent && paymentIntent.status === "succeeded") {
+            const accountNumber = document.getElementById(
+              "depositAccountNumber"
+            ).value;
+            const amount = parseFloat(
+              document.getElementById("depositAmount").value
+            );
+            const description =
+              document.getElementById("depositDescription").value ||
+              "Card deposit";
+
+            addTransaction(
+              "deposit",
+              amount,
+              `${description} (Stripe Payment)`,
+              accountNumber
+            );
+            showAlert(
+              `Card deposit of ${formatCurrency(
+                amount
+              )} processed successfully!`,
+              "success"
+            );
+
+            document.getElementById("depositForm")?.reset();
+            closeStripeModal();
+          }
+        } catch (error) {
+          console.error("Payment confirmation error:", error);
+          if (messageElement) {
+            messageElement.textContent =
+              "An unexpected error occurred. Please try again.";
+            messageElement.style.display = "block";
+          }
+        } finally {
+          if (submitButton) submitButton.disabled = false;
+          if (spinner) spinner.style.display = "none";
+        }
+      }
+
+      // Check payment status on page load
+      function checkPaymentStatus() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const paymentIntent = urlParams.get("payment_intent");
+        const paymentIntentClientSecret = urlParams.get(
+          "payment_intent_client_secret"
+        );
+
+        if (paymentIntent && paymentIntentClientSecret && stripe) {
+          stripe
+            .retrievePaymentIntent(paymentIntentClientSecret)
+            .then(({ paymentIntent }) => {
+              switch (paymentIntent.status) {
+                case "succeeded":
+                  showAlert(
+                    "Payment succeeded! Your deposit has been processed.",
+                    "success"
+                  );
+                  break;
+                case "processing":
+                  showAlert(
+                    "Payment processing. We will update you when payment is complete.",
+                    "info"
+                  );
+                  break;
+                case "requires_payment_method":
+                  showAlert(
+                    "Payment failed. Please try another payment method.",
+                    "error"
+                  );
+                  break;
+                default:
+                  showAlert("Something went wrong with your payment.", "error");
+                  break;
+              }
+            });
+        }
+      }
+
+      // Export/Import functionality
+      function exportTransactions() {
+        try {
+          const dataStr = JSON.stringify(transactions, null, 2);
+          const dataBlob = new Blob([dataStr], { type: "application/json" });
+          const url = URL.createObjectURL(dataBlob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download =
+            "transactions_" + new Date().toISOString().split("T")[0] + ".json";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          showAlert("Transaction history exported successfully.", "success");
+        } catch (error) {
+          console.error("Export error:", error);
+          showAlert("Failed to export transaction history.", "error");
+        }
+      }
+
+      function clearTransactionHistory() {
+        if (
+          confirm(
+            "Are you sure you want to clear all transaction history? This action cannot be undone."
+          )
+        ) {
+          transactions = [];
+          updateTransactionHistory();
+          showAlert("Transaction history cleared.", "info");
+        }
+      }
+
+      // Search and filter functionality
+      function searchTransactions() {
+        const searchTerm = document
+          .getElementById("transactionSearch")
+          ?.value.toLowerCase();
+        if (!searchTerm) {
+          updateTransactionHistory();
+          return;
+        }
+
+        const filteredTransactions = transactions.filter(
+          (transaction) =>
+            transaction.description.toLowerCase().includes(searchTerm) ||
+            transaction.accountNumber.includes(searchTerm) ||
+            transaction.type.toLowerCase().includes(searchTerm) ||
+            (transaction.toAccount &&
+              transaction.toAccount.includes(searchTerm))
+        );
+
+        displayFilteredTransactions(filteredTransactions);
+      }
+
+      function displayFilteredTransactions(filteredTransactions) {
+        const transactionList = document.getElementById("transactionList");
+        if (!transactionList) return;
+
+        transactionList.innerHTML = "";
+
+        if (filteredTransactions.length === 0) {
+          transactionList.innerHTML =
+            '<p class="text-center text-muted">No transactions found matching your search.</p>';
+          return;
+        }
+
+        filteredTransactions.forEach((transaction) => {
+          const transactionItem = document.createElement("div");
+          transactionItem.className = "transaction-item";
+
+          const typeClass = "type-" + transaction.type;
+          const typeDisplay =
+            transaction.type.charAt(0).toUpperCase() +
+            transaction.type.slice(1);
+          let details = transaction.description;
+
+          if (transaction.type === "transfer") {
+            details += ` (From: ${transaction.accountNumber} To: ${transaction.toAccount})`;
+          } else {
+            details += ` (Account: ${transaction.accountNumber})`;
+          }
+
+          transactionItem.innerHTML = `
+      <div>
+        <strong>${typeDisplay}</strong> - ${formatCurrency(transaction.amount)}
+        <br />
+        <small class="text-muted">${transaction.timestamp}</small>
+        <br />
+        <span class="text-secondary">${details}</span>
+      </div>
+      <span class="transaction-type ${typeClass}">${typeDisplay}</span>
+    `;
+
+          transactionList.appendChild(transactionItem);
+        });
+      }
+
+      // Make functions globally available
+      window.showTab = showTab;
+      window.toggleDepositMethod = toggleDepositMethod;
+      window.processCashDeposit = processCashDeposit;
+      window.processWithdraw = processWithdraw;
+      window.processTransfer = processTransfer;
+      window.showStripeModal = showStripeModal;
+      window.closeStripeModal = closeStripeModal;
+      window.handleStripePayment = handleStripePayment;
+      window.exportTransactions = exportTransactions;
+      window.clearTransactionHistory = clearTransactionHistory;
+      window.searchTransactions = searchTransactions;
     </script>
+
+    <footer>
+      <p>&copy; 2024 BankApp. All rights reserved.</p>
+      <p>Version: 1.0.0</p>
+      <p>
+        Contact: <a href="mailto:support@bankapp.com">support@bankapp.com</a>
+      </p>
+    </footer>
   </body>
 </html>

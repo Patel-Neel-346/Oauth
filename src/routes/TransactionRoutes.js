@@ -27,11 +27,11 @@ import {
   RefundPayment,
 } from "../controller/TransactionControllerV2.js";
 
-const router = express.Router();
+const TransactionRouter = express.Router();
 
 // ========== EJS VIEW ROUTE ==========
 // Serve the transaction page
-router.get("/", (req, res) => {
+TransactionRouter.get("/", (req, res) => {
   // You can pass sample data or fetch from database
   const sampleTransactions = [
     {
@@ -57,10 +57,17 @@ router.get("/", (req, res) => {
   res.render("index.ejs", { transactions: sampleTransactions });
 });
 
+TransactionRouter.get("/", (req, res) => {
+  res.render("index.ejs", {
+    transactions: sampleTransactions,
+    stripePublicKey: process.env.STRIPE_PUBLIC_KEY,
+  });
+});
+
 // ========== BASIC TRANSACTION ROUTES ==========
 
 // Deposit funds (Traditional - User, Borrower, Lender)
-router.post(
+TransactionRouter.post(
   "/deposit",
   Authenticated,
   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
@@ -68,7 +75,7 @@ router.post(
 );
 
 // Withdraw funds (User, Borrower, Lender)
-router.post(
+TransactionRouter.post(
   "/withdraw",
   Authenticated,
   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
@@ -76,7 +83,7 @@ router.post(
 );
 
 // Transfer funds (User, Borrower, Lender)
-router.post(
+TransactionRouter.post(
   "/transfer",
   Authenticated,
   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
@@ -86,7 +93,7 @@ router.post(
 // ========== STRIPE INTEGRATED TRANSACTION ROUTES ==========
 
 // Stripe deposit funds - Process payment and deposit to account
-router.post(
+TransactionRouter.post(
   "/stripe/deposit",
   Authenticated,
   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
@@ -94,7 +101,7 @@ router.post(
 );
 
 // Create Stripe payment intent for deposits - FIXED ROUTE PATH
-router.post(
+TransactionRouter.post(
   "/stripe/create-payment-intent", // Changed from "/stripe/payment-intent"
   Authenticated,
   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
@@ -102,7 +109,7 @@ router.post(
 );
 
 // Alternative route for payment intent (keeping both for compatibility)
-router.post(
+TransactionRouter.post(
   "/stripe/payment-intent",
   Authenticated,
   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
@@ -110,7 +117,7 @@ router.post(
 );
 
 // Confirm Stripe payment and update transaction status
-router.post(
+TransactionRouter.post(
   "/stripe/confirm-payment",
   Authenticated,
   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
@@ -118,7 +125,7 @@ router.post(
 );
 
 // Process Stripe refund
-router.post(
+TransactionRouter.post(
   "/stripe/refund",
   Authenticated,
   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
@@ -126,7 +133,7 @@ router.post(
 );
 
 // Get Stripe transaction history
-router.get(
+TransactionRouter.get(
   "/stripe/history",
   Authenticated,
   hasRole([
@@ -142,10 +149,10 @@ router.get(
 // ========== STRIPE CUSTOMER & PAYMENT METHOD ROUTES ==========
 
 // Stripe Webhook Handler (no auth needed for webhooks)
-router.post("/stripe/webhook", HandleStripeWebhook);
+TransactionRouter.post("/stripe/webhook", HandleStripeWebhook);
 
 // Create/Get Stripe Customer
-router.post(
+TransactionRouter.post(
   "/stripe/customer",
   Authenticated,
   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
@@ -153,7 +160,7 @@ router.post(
 );
 
 // Add Payment Method
-router.post(
+TransactionRouter.post(
   "/stripe/payment-method",
   Authenticated,
   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
@@ -161,7 +168,7 @@ router.post(
 );
 
 // Get User Payment Methods
-router.get(
+TransactionRouter.get(
   "/stripe/payment-methods/:customerId",
   Authenticated,
   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
@@ -169,7 +176,7 @@ router.get(
 );
 
 // Process Refund (alternative route)
-router.post(
+TransactionRouter.post(
   "/stripe/process-refund",
   Authenticated,
   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
@@ -179,7 +186,7 @@ router.post(
 // ========== GENERAL TRANSACTION ROUTES ==========
 
 // Get transaction history (All authenticated users)
-router.get(
+TransactionRouter.get(
   "/history/:accountNumber",
   Authenticated,
   hasRole([
@@ -193,7 +200,7 @@ router.get(
 );
 
 // Get account balance and filtered transactions
-router.get(
+TransactionRouter.get(
   "/getUserAccount",
   Authenticated,
   hasRole([
@@ -207,7 +214,7 @@ router.get(
 );
 
 // Get transaction summary (All authenticated users)
-router.get(
+TransactionRouter.get(
   "/summary",
   Authenticated,
   hasRole([
@@ -220,4 +227,4 @@ router.get(
   TransactionSummary
 );
 
-export default router;
+export default TransactionRouter;
