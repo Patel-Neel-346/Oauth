@@ -1,102 +1,3 @@
-// // src/routes/TransactionRoutes.js
-// import express from "express";
-// import { Authenticated } from "../middleware/authMiddleware.js";
-// import { hasRole, ROLE_TYPES } from "../middleware/roleMiddleware.js";
-// import {
-//   DepositFunds,
-//   GetAccountBalance,
-//   GetTransactionHistory,
-//   TransactionSummary,
-//   TransferFunds,
-//   WithDrawFunds,
-// } from "../controller/TransactionControllerV2.js";
-// import {
-//   depositFundsValidation,
-//   withdrawFundsValidation,
-//   transferFundsValidation,
-//   getTransactionHistoryValidation,
-//   getAccountBalanceValidation,
-//   transactionSummaryValidation,
-// } from "../middleware/transactionValidation.js";
-
-// const router = express.Router();
-
-// // ========== BASIC TRANSACTION ROUTES ==========
-
-// // Deposit funds (User, Borrower, Lender)
-// router.post(
-//   "/deposit",
-//   Authenticated,
-//   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
-//   depositFundsValidation,
-//   DepositFunds
-// );
-
-// // Withdraw funds (User, Borrower, Lender)
-// router.post(
-//   "/withdraw",
-//   Authenticated,
-//   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
-//   withdrawFundsValidation,
-//   WithDrawFunds
-// );
-
-// // Transfer funds (User, Borrower, Lender)
-// router.post(
-//   "/transfer",
-//   Authenticated,
-//   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
-//   transferFundsValidation,
-//   TransferFunds
-// );
-
-// // Get transaction history (All authenticated users)
-// router.get(
-//   "/history/:accountNumber",
-//   Authenticated,
-//   hasRole([
-//     ROLE_TYPES.USER,
-//     ROLE_TYPES.BORROWER,
-//     ROLE_TYPES.LENDER,
-//     ROLE_TYPES.ADMIN,
-//     ROLE_TYPES.MANAGER,
-//   ]),
-//   getTransactionHistoryValidation,
-//   GetTransactionHistory
-// );
-
-// // Get account balance and filtered transactions
-// router.get(
-//   "/getUserAccount",
-//   Authenticated,
-//   hasRole([
-//     ROLE_TYPES.USER,
-//     ROLE_TYPES.BORROWER,
-//     ROLE_TYPES.LENDER,
-//     ROLE_TYPES.ADMIN,
-//     ROLE_TYPES.MANAGER,
-//   ]),
-//   getAccountBalanceValidation,
-//   GetAccountBalance
-// );
-
-// // Get transaction summary (All authenticated users)
-// router.get(
-//   "/summary",
-//   Authenticated,
-//   hasRole([
-//     ROLE_TYPES.USER,
-//     ROLE_TYPES.BORROWER,
-//     ROLE_TYPES.LENDER,
-//     ROLE_TYPES.ADMIN,
-//     ROLE_TYPES.MANAGER,
-//   ]),
-//   transactionSummaryValidation,
-//   TransactionSummary
-// );
-
-// export default router;
-
 // src/routes/TransactionRoutes.js
 import express from "express";
 import { Authenticated } from "../middleware/authMiddleware.js";
@@ -116,17 +17,45 @@ import {
   ConfirmStripePayment,
   StripeRefund,
   GetStripeTransactionHistory,
+
+  // Existing Stripe methods
+  HandleStripePayment,
+  HandleStripeWebhook,
+  CreateStripeCustomer,
+  AddPaymentMethod,
+  GetPaymentMethods,
+  RefundPayment,
 } from "../controller/TransactionControllerV2.js";
-// import {
-//   depositFundsValidation,
-//   withdrawFundsValidation,
-//   transferFundsValidation,
-//   getTransactionHistoryValidation,
-//   getAccountBalanceValidation,
-//   transactionSummaryValidation,
-// } from "../middleware/transactionValidation.js";
 
 const router = express.Router();
+
+// ========== EJS VIEW ROUTE ==========
+// Serve the transaction page
+router.get("/", (req, res) => {
+  // You can pass sample data or fetch from database
+  const sampleTransactions = [
+    {
+      type: "Deposit",
+      amount: 500.0,
+      date: "2025-01-15",
+      description: "Cash deposit",
+    },
+    {
+      type: "Withdrawal",
+      amount: 100.0,
+      date: "2025-01-14",
+      description: "ATM withdrawal",
+    },
+    {
+      type: "Transfer",
+      amount: 250.0,
+      date: "2025-01-13",
+      description: "Transfer to savings",
+    },
+  ];
+
+  res.render("index.ejs", { transactions: sampleTransactions });
+});
 
 // ========== BASIC TRANSACTION ROUTES ==========
 
@@ -135,7 +64,6 @@ router.post(
   "/deposit",
   Authenticated,
   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
-  // depositFundsValidation,
   DepositFunds
 );
 
@@ -144,7 +72,6 @@ router.post(
   "/withdraw",
   Authenticated,
   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
-  // withdrawFundsValidation,
   WithDrawFunds
 );
 
@@ -153,7 +80,6 @@ router.post(
   "/transfer",
   Authenticated,
   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
-  // transferFundsValidation,
   TransferFunds
 );
 
@@ -167,7 +93,15 @@ router.post(
   StripeDepositFunds
 );
 
-// Create Stripe payment intent for deposits
+// Create Stripe payment intent for deposits - FIXED ROUTE PATH
+router.post(
+  "/stripe/create-payment-intent", // Changed from "/stripe/payment-intent"
+  Authenticated,
+  hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
+  StripePaymentIntent
+);
+
+// Alternative route for payment intent (keeping both for compatibility)
 router.post(
   "/stripe/payment-intent",
   Authenticated,
@@ -205,6 +139,43 @@ router.get(
   GetStripeTransactionHistory
 );
 
+// ========== STRIPE CUSTOMER & PAYMENT METHOD ROUTES ==========
+
+// Stripe Webhook Handler (no auth needed for webhooks)
+router.post("/stripe/webhook", HandleStripeWebhook);
+
+// Create/Get Stripe Customer
+router.post(
+  "/stripe/customer",
+  Authenticated,
+  hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
+  CreateStripeCustomer
+);
+
+// Add Payment Method
+router.post(
+  "/stripe/payment-method",
+  Authenticated,
+  hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
+  AddPaymentMethod
+);
+
+// Get User Payment Methods
+router.get(
+  "/stripe/payment-methods/:customerId",
+  Authenticated,
+  hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
+  GetPaymentMethods
+);
+
+// Process Refund (alternative route)
+router.post(
+  "/stripe/process-refund",
+  Authenticated,
+  hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
+  RefundPayment
+);
+
 // ========== GENERAL TRANSACTION ROUTES ==========
 
 // Get transaction history (All authenticated users)
@@ -218,7 +189,6 @@ router.get(
     ROLE_TYPES.ADMIN,
     ROLE_TYPES.MANAGER,
   ]),
-  // getTransactionHistoryValidation,
   GetTransactionHistory
 );
 
@@ -233,7 +203,6 @@ router.get(
     ROLE_TYPES.ADMIN,
     ROLE_TYPES.MANAGER,
   ]),
-  // getAccountBalanceValidation,
   GetAccountBalance
 );
 
@@ -248,7 +217,6 @@ router.get(
     ROLE_TYPES.ADMIN,
     ROLE_TYPES.MANAGER,
   ]),
-  // transactionSummaryValidation,
   TransactionSummary
 );
 

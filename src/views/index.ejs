@@ -682,25 +682,28 @@
           }
 
           // Step 2: Send payment intent request to backend
-          const response = await fetch("/api/stripe/create-payment-intent", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`, // Optional: if using JWT auth
-            },
-            body: JSON.stringify({
-              accountNumber,
-              amount,
-              description,
-              paymentMethodId: paymentMethod.id,
-              customerData: {
-                name,
-                email,
-                phone,
+          const response = await fetch(
+            "http://localhost:7000/stripe/stripe/create-payment-intent",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`, // Optional: if using JWT auth
               },
-              action: "process", // Let backend know we want to confirm it
-            }),
-          });
+              body: JSON.stringify({
+                accountNumber,
+                amount,
+                description,
+                paymentMethodId: paymentMethod.id,
+                customerData: {
+                  name,
+                  email,
+                  phone,
+                },
+                action: "process", // Let backend know we want to confirm it
+              }),
+            }
+          );
 
           const result = await response.json();
 

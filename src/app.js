@@ -14,10 +14,19 @@ import AccountRoute from "./routes/AccountRoutes.js";
 import TransactionRouter from "./routes/TransactionRoutes.js";
 import router from "./routes/LoanRoute.js";
 import StripeRouter from "./routes/Stripe_Router.js";
+import { fileURLToPath } from "url";
+import path from "path";
 
 const PORT = ConfigENV.PORT || 7000;
-const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+const app = express();
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "src/views"));
+
+// Serve static files (CSS, JS, images)
+app.use("/static", express.static(path.join(__dirname, "src/public")));
 connectDb();
 
 // Enable CORS for your frontend
@@ -66,7 +75,7 @@ app.get("/", (req, res) => {
 });
 
 // Route definitions
-app.use("/Stripe", StripeRouter);
+app.use("/stripe", StripeRouter);
 app.use("/auth", AuthRouter);
 app.use("/api/v1/user", AuthRouter);
 app.use("/data", DataRouter);
