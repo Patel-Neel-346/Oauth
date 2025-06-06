@@ -417,6 +417,211 @@ class StripeService {
       );
     }
   }
+
+  async handleTransfer(transferData) {
+    try {
+      const {
+        fromAccount,
+        toAccount,
+        amount,
+        currency = "usd",
+        userId,
+        description = "Stripe transfer",
+        paymentMethodId,
+        customerData,
+        transferType = "instant",
+        metadata = {},
+      } = transferData;
+
+      // Validate accounts
+      if (fromAccount.status !== "active") {
+        throw new ApiError(
+          400,
+          `Cannot transfer from ${fromAccount.status} account`
+        );
+      }
+
+      if (toAccount.status !== "active") {
+        throw new ApiError(
+          400,
+          `Cannot transfer to ${toAccount.status} account`
+        );
+      }
+
+      if (fromAccount.currency !== toAccount.currency) {
+        throw new ApiError(400, "Currency mismatch between accounts");
+      }
+
+      // Calculate fees
+      const transferFee = this.calculateStripeTransferFee(amount, transferType);
+      const totalAmount = amount + transferFee;
+
+      // Check if we need to use Stripe payment method for funding
+      const needsExternalFunding = fromAccount.balance < totalAmount;
+
+      let paymentIntent = null;
+      let customer = null;
+
+      if (needsExternalFunding && paymentMethodId && customerData) {
+        // Create payment intent to fund the transfer
+        customer = await this.createOrGetCustomer(customerData, userId);
+
+        const fundingAmount = totalAmount - fromAccount.balance;
+
+        paymentIntent = await this.stripe.paymentIntents.create({
+          amount: Math.round(fundingAmount * 100),
+          currency: currency.toLowerCase(),
+          customer: customer.id,
+          payment_method: paymentMethodId,
+          description: `Funding for transfer: ${description}`,
+          confirm: true,
+          metadata: {
+            funding_for_transfer: "true",
+            from_account_id: fromAccount._id.toString(),
+            to_account_id: toAccount._id.toString(),
+            original_transfer_amount: amount.toString(),
+            ...metadata,
+          },
+          automatic_payment_methods: {
+            enabled: true,
+            allow_redirects: "never",
+          },
+        });
+
+        if (paymentIntent.status !== "succeeded") {
+          throw new ApiError(
+            400,
+            "Failed to fund transfer with payment method"
+          );
+        }
+
+        // Add funded amount to source account
+        fromAccount.balance += fundingAmount;
+        await fromAccount.save();
+      } else if (needsExternalFunding) {
+        throw new ApiError(400, "Insufficient funds for transfer");
+      }
+
+      // Create Stripe Transfer (if using Stripe Connect)
+      let stripeTransfer = null;
+      if (toAccount.stripeAccountId) {
+        // This requires Stripe Connect setup
+        stripeTransfer = await this.stripe.transfers.create({
+          amount: Math.round(amount * 100),
+          currency: currency.toLowerCase(),
+          destination: toAccount.stripeAccountId,
+          description,
+          metadata: {
+            from_account_number: fromAccount.accountNumber,
+            to_account_number: toAccount.accountNumber,
+            ...metadata,
+          },
+        });
+      }
+
+      // Create transfer transaction record
+      const transaction = new Transaction({
+        fromAccount: fromAccount._id,
+        toAccount: toAccount._id,
+        amount,
+        type: "transfer",
+        description,
+        status: "pending",
+        reference: `STRP_TRF_${Date.now()}${Math.floor(Math.random() * 1000)}`,
+        metadata: {
+          stripe_transfer_id: stripeTransfer?.id,
+          stripe_payment_intent_id: paymentIntent?.id,
+          stripe_customer_id: customer?.id,
+          transfer_fee: transferFee,
+          total_deduction: totalAmount,
+          transfer_type: transferType,
+          external_funding_used: needsExternalFunding,
+          ...metadata,
+        },
+      });
+
+      await transaction.save();
+
+      // Process the transfer
+      fromAccount.balance -= totalAmount;
+      toAccount.balance += amount;
+
+      await Promise.all([fromAccount.save(), toAccount.save()]);
+
+      // Create fee transaction if applicable
+      if (transferFee > 0) {
+        const feeTransaction = new Transaction({
+          fromAccount: fromAccount._id,
+          amount: transferFee,
+          type: "fee",
+          description: `Transfer fee for ${transaction.reference}`,
+          status: "completed",
+          reference: `STRP_FEE_${Date.now()}${Math.floor(
+            Math.random() * 1000
+          )}`,
+          processAt: new Date(),
+          metadata: {
+            relatedTransactionID: transaction._id,
+            transfer_type: transferType,
+          },
+        });
+
+        await feeTransaction.save();
+      }
+
+      // Update transaction status
+      transaction.status = "completed";
+      transaction.processAt = new Date();
+      await transaction.save();
+
+      // Prepare response
+      const response = {
+        success: true,
+        transaction: {
+          id: transaction._id,
+          reference: transaction.reference,
+          status: transaction.status,
+          amount,
+          transferFee: transferFee > 0 ? transferFee : null,
+        },
+        fromAccount: {
+          accountNumber: fromAccount.accountNumber,
+          newBalance: fromAccount.balance,
+          currency: fromAccount.currency,
+        },
+        toAccount: {
+          accountNumber: toAccount.accountNumber,
+          newBalance: toAccount.balance,
+          currency: toAccount.currency,
+        },
+        stripe: {
+          transferId: stripeTransfer?.id || null,
+          paymentIntentId: paymentIntent?.id || null,
+          customerId: customer?.id || null,
+        },
+        externalFundingUsed: needsExternalFunding,
+      };
+
+      return response;
+    } catch (error) {
+      if (error.type === "StripeCardError") {
+        throw new ApiError(400, `Card error: ${error.message}`);
+      }
+      if (error.type === "StripeInvalidRequestError") {
+        throw new ApiError(400, `Invalid request: ${error.message}`);
+      }
+      throw new ApiError(500, `Stripe Transfer failed: ${error.message}`);
+    }
+  }
+  calculateStripeTransferFee(amount, transferType = "instant") {
+    // Stripe transfer fees (adjust based on your Stripe pricing)
+    const fees = {
+      instant: Math.max(0.5, amount * 0.015), // 1.5% with $0.50 minimum
+      standard: 0.25, // Flat $0.25 for standard transfers
+    };
+
+    return fees[transferType] || fees.standard;
+  }
 }
 
 export default StripeService;

@@ -470,6 +470,78 @@ export const TransferFunds = asyncHandler(async (req, res, next) => {
   }
 });
 
+export const StripeTransferFunds = asyncHandler(async (req, res, next) => {
+  const {
+    fromAccountNumber,
+    toAccountNumber,
+    amount,
+    description,
+    paymentMethodId, // For funding the transfer if source account has insufficient balance
+    customerData,
+    currency = "usd",
+    transferType = "instant", // instant, standard
+  } = req.body;
+  const userId = req.user;
+
+  try {
+    // Validate input
+    if (!fromAccountNumber || !toAccountNumber || !amount || amount <= 0) {
+      return next(
+        new ApiError(400, "Missing required fields or invalid amount")
+      );
+    }
+
+    if (fromAccountNumber === toAccountNumber) {
+      return next(new ApiError(400, "Cannot transfer to the same account"));
+    }
+
+    // Find accounts
+    const [fromAccount, toAccount] = await Promise.all([
+      Account.findOne({ accountNumber: fromAccountNumber }),
+      Account.findOne({ accountNumber: toAccountNumber }),
+    ]);
+
+    if (!fromAccount) {
+      return next(new ApiError(404, "Source account not found"));
+    }
+
+    if (!toAccount) {
+      return next(new ApiError(404, "Destination account not found"));
+    }
+
+    // Authorization check
+    if (fromAccount.userId.toString() !== userId.toString()) {
+      return next(new ApiError(403, "Unauthorized access to source account"));
+    }
+
+    const transferData = {
+      fromAccount,
+      toAccount,
+      amount: parseFloat(amount),
+      currency,
+      userId,
+      description: description || "Stripe Transfer",
+      paymentMethodId,
+      customerData,
+      transferType,
+      metadata: {
+        transfer_type: "stripe",
+        from_account_number: fromAccountNumber,
+        to_account_number: toAccountNumber,
+      },
+    };
+
+    const result = await stripeService.handleTransfer(transferData);
+
+    return res
+      .status(200)
+      .json(new ApiRes(200, result, "Transfer processed successfully"));
+  } catch (error) {
+    console.log("Stripe Transfer Error:", error);
+    return next(new ApiError(500, `Transfer Error: ${error.message}`));
+  }
+});
+
 // Get Account Balance
 export const GetAccountBalance = asyncHandler(async (req, res, next) => {
   const { accountNumber } = req.params || req.query;

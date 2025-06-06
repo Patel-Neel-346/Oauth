@@ -25,6 +25,7 @@ import {
   AddPaymentMethod,
   GetPaymentMethods,
   RefundPayment,
+  StripeTransferFunds,
 } from "../controller/TransactionControllerV2.js";
 
 const TransactionRouter = express.Router();
@@ -130,6 +131,13 @@ TransactionRouter.post(
   Authenticated,
   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
   StripeRefund
+);
+
+TransactionRouter.post(
+  "/stripe/transfer",
+  Authenticated,
+  hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
+  StripeTransferFunds
 );
 
 // Get Stripe transaction history
