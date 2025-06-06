@@ -1,7 +1,11 @@
 //  <script>
-// Banking Transaction System - API Integrated Version
-// Configuration
-const API_BASE_URL = "http://localhost:7000"; // Your API base URL
+{
+  /* // Banking Transaction System - Cleaned and Fixed Version */
+}
+{
+  /* // Configuration */
+}
+const API_BASE_URL = "http://localhost:7000";
 const STRIPE_PUBLIC_KEY =
   "pk_test_51QfQyYCQkunRa8JYtiDumB6BMWjOwqrYMnp3p14rxHepDcSWALJKrKGp4immlWPAbejkuzGgoJbsIApu8WEbgv0Z00NwDBA5XT";
 
@@ -11,22 +15,20 @@ let elements;
 let paymentElement;
 let paymentIntentClientSecret;
 let transactions = [];
-let authToken = null; // You'll need to set this based on your auth system
+let authToken = null;
 
-// Initialize Stripe on page load
+// Initialize on page load
 document.addEventListener("DOMContentLoaded", function () {
   initializeStripe();
-  checkPaymentStatus();
   loadTransactions();
   setupEventListeners();
   checkAuthToken();
 });
 
-// Check for authentication token (implement based on your auth system)
+// Check for authentication token
 function checkAuthToken() {
-  // This should get the actual auth token from your authentication system
-  // For demo purposes, you might need to set this manually or get it from localStorage/sessionStorage
-  authToken = localStorage.getItem("authToken") || "demo-token";
+  // Get token from your auth system - adjust as needed
+  authToken = "demo-token"; // Replace with actual token logic
 
   if (!authToken) {
     showAlert("Please log in to access banking services.", "error");
@@ -40,7 +42,6 @@ async function initializeStripe() {
       console.warn("Stripe.js not loaded. Card payments will be unavailable.");
       return;
     }
-
     stripe = Stripe(STRIPE_PUBLIC_KEY);
     console.log("Stripe initialized successfully");
   } catch (error) {
@@ -58,7 +59,6 @@ function setupEventListeners() {
   const accountInputs = document.querySelectorAll('input[id*="AccountNumber"]');
   accountInputs.forEach((input) => {
     input.addEventListener("input", function (e) {
-      // Allow letters and numbers, limit to 12 characters
       e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, "").slice(0, 12);
     });
   });
@@ -101,7 +101,6 @@ function setupEventListeners() {
         showTab(tabs[tabIndex]);
       }
     }
-
     if (e.key === "Escape") {
       closeStripeModal();
     }
@@ -135,13 +134,8 @@ function setLoading(buttonId, spinnerId, isLoading) {
   const button = document.getElementById(buttonId);
   const spinner = document.getElementById(spinnerId);
 
-  if (button) {
-    button.disabled = isLoading;
-  }
-
-  if (spinner) {
-    spinner.style.display = isLoading ? "inline-block" : "none";
-  }
+  if (button) button.disabled = isLoading;
+  if (spinner) spinner.style.display = isLoading ? "inline-block" : "none";
 }
 
 function formatCurrency(amount) {
@@ -162,7 +156,7 @@ function getCurrentDateTime() {
   });
 }
 
-// Enhanced API call function with proper authentication
+// API call function
 async function makeAPICall(endpoint, options = {}) {
   try {
     const headers = {
@@ -170,7 +164,6 @@ async function makeAPICall(endpoint, options = {}) {
       ...options.headers,
     };
 
-    // Add authorization header if token exists
     if (authToken) {
       headers.Authorization = `Bearer ${authToken}`;
     }
@@ -182,6 +175,7 @@ async function makeAPICall(endpoint, options = {}) {
 
     const data = await response.json();
 
+    console.log(data);
     if (!response.ok) {
       throw new Error(data.message || `HTTP error! status: ${response.status}`);
     }
@@ -286,7 +280,6 @@ function updateTransactionHistory() {
 
 async function loadTransactions() {
   try {
-    // Try to load real transaction history
     const response = await makeAPICall("/api/transaction/getUserAccount");
     if (response.success && response.data.transactions) {
       const apiTransactions = response.data.transactions.map((tx) => ({
@@ -302,7 +295,6 @@ async function loadTransactions() {
       }));
       transactions = apiTransactions;
     } else {
-      // Fallback to sample data
       loadSampleTransactions();
     }
   } catch (error) {
@@ -442,7 +434,7 @@ async function processCashDeposit() {
         "success"
       );
       document.getElementById("depositForm")?.reset();
-      await loadTransactions(); // Refresh transaction history
+      await loadTransactions();
     } else {
       showAlert(
         response.message || "Cash deposit failed. Please try again.",
@@ -487,7 +479,7 @@ async function processWithdraw() {
         "success"
       );
       document.getElementById("withdrawForm")?.reset();
-      await loadTransactions(); // Refresh transaction history
+      await loadTransactions();
     } else {
       showAlert(
         response.message ||
@@ -535,7 +527,7 @@ async function processTransfer() {
         "success"
       );
       document.getElementById("transferForm")?.reset();
-      await loadTransactions(); // Refresh transaction history
+      await loadTransactions();
     } else {
       showAlert(
         response.message ||
@@ -554,7 +546,7 @@ async function processTransfer() {
   }
 }
 
-// Stripe payment functions
+// Stripe payment functions - FIXED VERSION
 function showStripeModal() {
   if (!stripe) {
     showAlert(
@@ -639,13 +631,13 @@ async function initializeStripePayment(amount, email, name, phone) {
   }
 
   try {
-    // First, create a payment intent via your backend
     const accountNumber = document.getElementById("depositAccountNumber").value;
     const description =
       document.getElementById("depositDescription").value || "Card deposit";
 
+    // FIXED: Use consistent API endpoint
     const response = await makeAPICall(
-      "/transaction/stripe/create-payment-intent",
+      "/api/transaction/stripe/create-payment-intent",
       {
         method: "POST",
         body: JSON.stringify({
@@ -666,7 +658,15 @@ async function initializeStripePayment(amount, email, name, phone) {
       throw new Error(response.message || "Failed to create payment intent");
     }
 
-    paymentIntentClientSecret = response.data.paymentIntent.client_secret;
+    // FIXED: Handle different response structures
+    paymentIntentClientSecret =
+      response.data?.paymentIntent?.client_secret ||
+      response.paymentIntent?.client_secret ||
+      response.client_secret;
+
+    if (!paymentIntentClientSecret) {
+      throw new Error("Payment intent client secret not found in response");
+    }
 
     // Initialize Stripe Elements
     elements = stripe.elements({
@@ -749,7 +749,7 @@ async function handleStripePayment() {
       }
       console.error("Payment error:", error);
     } else if (paymentIntent && paymentIntent.status === "succeeded") {
-      // Payment succeeded, now process the deposit via your backend
+      // Payment succeeded, process the deposit
       const accountNumber = document.getElementById(
         "depositAccountNumber"
       ).value;
@@ -758,6 +758,7 @@ async function handleStripePayment() {
         document.getElementById("depositDescription").value || "Card deposit";
 
       try {
+        // FIXED: Use consistent API endpoint
         const response = await makeAPICall(
           "/api/transaction/stripe/confirm-payment",
           {
@@ -783,7 +784,7 @@ async function handleStripePayment() {
             "success"
           );
           document.getElementById("depositForm")?.reset();
-          await loadTransactions(); // Refresh transaction history
+          await loadTransactions();
           closeStripeModal();
         } else {
           showAlert(
@@ -813,47 +814,7 @@ async function handleStripePayment() {
   }
 }
 
-// Check payment status on page load
-function checkPaymentStatus() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const paymentIntent = urlParams.get("payment_intent");
-  const paymentIntentClientSecret = urlParams.get(
-    "payment_intent_client_secret"
-  );
-
-  if (paymentIntent && paymentIntentClientSecret && stripe) {
-    stripe
-      .retrievePaymentIntent(paymentIntentClientSecret)
-      .then(({ paymentIntent }) => {
-        switch (paymentIntent.status) {
-          case "succeeded":
-            showAlert(
-              "Payment succeeded! Your deposit has been processed.",
-              "success"
-            );
-            loadTransactions(); // Refresh transaction history
-            break;
-          case "processing":
-            showAlert(
-              "Payment processing. We will update you when payment is complete.",
-              "info"
-            );
-            break;
-          case "requires_payment_method":
-            showAlert(
-              "Payment failed. Please try another payment method.",
-              "error"
-            );
-            break;
-          default:
-            showAlert("Something went wrong with your payment.", "error");
-            break;
-        }
-      });
-  }
-}
-
-// Export/Import functionality
+// Export/Import functionality - SIMPLIFIED
 function exportTransactions() {
   try {
     const dataStr = JSON.stringify(transactions, null, 2);
@@ -897,6 +858,5 @@ window.closeStripeModal = closeStripeModal;
 window.handleStripePayment = handleStripePayment;
 window.exportTransactions = exportTransactions;
 window.clearTransactionHistory = clearTransactionHistory;
-{
-  /* </script> */
-}
+
+// </script>
