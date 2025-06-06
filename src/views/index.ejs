@@ -254,16 +254,113 @@
               />
             </div>
 
-            <button
-              type="button"
-              class="btn btn-primary"
-              onclick="processTransfer()"
-              id="transferBtn"
-            >
-              <i class="fas fa-exchange-alt"></i>
-              <span>Process Transfer</span>
-              <div class="spinner" id="transferSpinner"></div>
-            </button>
+            <div class="form-group">
+              <label>Transfer Method</label>
+              <select
+                id="transferMethod"
+                class="form-control"
+                onchange="toggleTransferMethod()"
+              >
+                <option value="regular">Regular Transfer</option>
+                <option value="stripe">
+                  Stripe Transfer (with card funding)
+                </option>
+              </select>
+            </div>
+
+            <!-- Regular Transfer -->
+            <div id="regularTransfer">
+              <div class="form-group">
+                <label>Transfer Type</label>
+                <select id="transferType" class="form-control">
+                  <option value="instant">Instant Transfer</option>
+                  <option value="standard">Standard Transfer</option>
+                </select>
+              </div>
+
+              <button
+                type="button"
+                class="btn btn-primary"
+                onclick="processTransfer()"
+                id="transferBtn"
+              >
+                <i class="fas fa-exchange-alt"></i>
+                <span>Process Transfer</span>
+                <div class="spinner" id="transferSpinner"></div>
+              </button>
+            </div>
+
+            <!-- Stripe Transfer -->
+            <div id="stripeTransfer" style="display: none">
+              <div class="form-group">
+                <label>Transfer Type</label>
+                <select id="stripeTransferType" class="form-control">
+                  <option value="instant">Instant Transfer</option>
+                  <option value="standard">Standard Transfer</option>
+                </select>
+              </div>
+
+              <div class="stripe-form">
+                <h3><i class="fab fa-stripe"></i> Card Details for Funding</h3>
+                <p>
+                  <small
+                    >Card will be used to fund the transfer if account balance
+                    is insufficient</small
+                  >
+                </p>
+
+                <div class="row">
+                  <div class="form-group">
+                    <label>Cardholder Name</label>
+                    <input
+                      type="text"
+                      id="transferCardholderName"
+                      class="form-control"
+                      required
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      id="transferCardholderEmail"
+                      class="form-control"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Phone</label>
+                  <input
+                    type="tel"
+                    id="transferCardholderPhone"
+                    class="form-control"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>Card Information</label>
+                  <div id="stripe-transfer-card-element"></div>
+                  <div
+                    id="transfer-card-errors"
+                    role="alert"
+                    style="color: #721c24; margin-top: 10px"
+                  ></div>
+                </div>
+
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  onclick="processStripeTransfer()"
+                  id="stripeTransferBtn"
+                >
+                  <i class="fab fa-stripe-s"></i>
+                  <span>Process Stripe Transfer</span>
+                  <div class="spinner" id="stripeTransferSpinner"></div>
+                </button>
+              </div>
+            </div>
           </form>
         </div>
 
@@ -304,16 +401,31 @@
         "pk_test_51QfQyYCQkunRa8JYtiDumB6BMWjOwqrYMnp3p14rxHepDcSWALJKrKGp4immlWPAbejkuzGgoJbsIApu8WEbgv0Z00NwDBA5XT"; // Move this to environment variables
 
       // Initialize Stripe
-      let stripe, elements, card;
+      let stripe, elements, card, transferCard;
 
       try {
         stripe = Stripe(STRIPE_PUBLIC_KEY);
         elements = stripe.elements();
+
+        // Deposit card element
         card = elements.create("card");
         card.mount("#stripe-card-element");
 
         card.on("change", ({ error }) => {
           const displayError = document.getElementById("card-errors");
+          if (error) {
+            displayError.textContent = error.message;
+          } else {
+            displayError.textContent = "";
+          }
+        });
+
+        // Transfer card element
+        transferCard = elements.create("card");
+        transferCard.mount("#stripe-transfer-card-element");
+
+        transferCard.on("change", ({ error }) => {
+          const displayError = document.getElementById("transfer-card-errors");
           if (error) {
             displayError.textContent = error.message;
           } else {
@@ -412,6 +524,14 @@
           method === "stripe" ? "block" : "none";
       }
 
+      function toggleTransferMethod() {
+        const method = document.getElementById("transferMethod").value;
+        document.getElementById("regularTransfer").style.display =
+          method === "regular" ? "block" : "none";
+        document.getElementById("stripeTransfer").style.display =
+          method === "stripe" ? "block" : "none";
+      }
+
       // Cash Deposit
       async function processCashDeposit() {
         const accountNumber = document.getElementById(
@@ -506,7 +626,7 @@
         }
       }
 
-      // Transfer
+      // Regular Transfer
       async function processTransfer() {
         const fromAccountNumber =
           document.getElementById("fromAccountNumber").value;
@@ -563,6 +683,118 @@
           showAlert(`Transfer failed: ${error.message}`, "error");
         } finally {
           setLoading("transferBtn", "transferSpinner", false);
+        }
+      }
+
+      // Stripe Transfer
+      async function processStripeTransfer() {
+        const fromAccountNumber =
+          document.getElementById("fromAccountNumber").value;
+        const toAccountNumber =
+          document.getElementById("toAccountNumber").value;
+        const amount = parseFloat(
+          document.getElementById("transferAmount").value
+        );
+        const description =
+          document.getElementById("transferDescription").value ||
+          "Stripe Transfer";
+        const transferType =
+          document.getElementById("stripeTransferType").value;
+        const name = document.getElementById("transferCardholderName").value;
+        const email = document.getElementById("transferCardholderEmail").value;
+        const phone = document.getElementById("transferCardholderPhone").value;
+
+        if (
+          !fromAccountNumber ||
+          !toAccountNumber ||
+          !amount ||
+          amount <= 0 ||
+          !name ||
+          !email
+        ) {
+          showAlert(
+            "Please fill in all required fields with valid values.",
+            "error"
+          );
+          return;
+        }
+
+        if (fromAccountNumber === toAccountNumber) {
+          showAlert(
+            "Source and destination accounts cannot be the same.",
+            "error"
+          );
+          return;
+        }
+
+        if (!stripe || !transferCard) {
+          showAlert(
+            "Stripe is not properly initialized. Please refresh the page.",
+            "error"
+          );
+          return;
+        }
+
+        setLoading("stripeTransferBtn", "stripeTransferSpinner", true);
+
+        try {
+          // Step 1: Create Stripe Payment Method
+          const { paymentMethod, error: pmError } =
+            await stripe.createPaymentMethod({
+              type: "card",
+              card: transferCard,
+              billing_details: {
+                name,
+                email,
+                phone,
+              },
+            });
+
+          if (pmError) {
+            throw new Error(pmError.message);
+          }
+
+          // Step 2: Send transfer request to backend
+          const response = await makeAPICall("/stripe/transfer", {
+            method: "POST",
+            body: JSON.stringify({
+              fromAccountNumber,
+              toAccountNumber,
+              amount,
+              description,
+              transferType,
+              paymentMethodId: paymentMethod.id,
+              customerData: {
+                name,
+                email,
+                phone,
+              },
+            }),
+          });
+
+          let message = `Stripe transfer successful! `;
+          if (response.data?.fromAccount) {
+            message += `From account balance: $${response.data.fromAccount.newBalance} `;
+          }
+          if (response.data?.transaction?.transferFee) {
+            message += `(Transfer fee: $${response.data.transaction.transferFee}) `;
+          }
+          if (response.data?.externalFundingUsed) {
+            message += `External funding was used to complete the transfer.`;
+          }
+
+          showAlert(message, "success");
+
+          // Reset form
+          document.getElementById("transferForm").reset();
+          transferCard.clear();
+        } catch (error) {
+          const errorMessage = error.message || "Stripe transfer failed";
+          document.getElementById("transfer-card-errors").textContent =
+            errorMessage;
+          showAlert(`Transfer failed: ${errorMessage}`, "error");
+        } finally {
+          setLoading("stripeTransferBtn", "stripeTransferSpinner", false);
         }
       }
 
