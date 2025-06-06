@@ -125,7 +125,7 @@ export const StripePaymentIntent = asyncHandler(async (req, res, next) => {
     };
 
     const result = await stripeService.handlePayment(paymentData, action);
-
+    console.log(result);
     return res
       .status(200)
       .json(
