@@ -145,12 +145,38 @@ export const StripePaymentIntent = asyncHandler(async (req, res, next) => {
 
 // NEW: Confirm Stripe Payment
 export const ConfirmStripePayment = asyncHandler(async (req, res, next) => {
-  const { paymentIntentId } = req.body;
+  const { paymentIntentId, accountNumber } = req.body;
 
   try {
-    const paymentIntent = await stripeService.stripe.paymentIntents.confirm(
+    const paymentIntent = await stripeService.stripe.paymentIntents.retrieve(
       paymentIntentId
     );
+
+    const account = await Account.findOne({ accountNumber: accountNumber });
+    console.log(account);
+
+    if (!account) {
+      throw new ApiError(404, "Account not found");
+    }
+
+    if (account.status !== "active") {
+      throw new ApiError(
+        400,
+        `Cannot process payment for ${account.status} account`
+      );
+      0;
+    }
+
+    const transaction = await Transaction.findOne({
+      "metadata.stripe_payment_intent_id": paymentIntent.id,
+    });
+
+    if (paymentIntent.status == "succeeded") {
+      transaction.status = "completed";
+      account.balance += paymentIntent.amount;
+      await account.save();
+      await transaction.save();
+    }
 
     return res
       .status(200)
