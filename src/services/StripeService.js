@@ -322,26 +322,40 @@ class StripeService {
     reason = "requested_by_customer"
   ) {
     try {
+      // Retrieve payment intent and expand charges
       const paymentIntent = await this.stripe.paymentIntents.retrieve(
-        paymentIntentId
+        paymentIntentId,
+        { expand: ["charges"] }
       );
 
-      if (!paymentIntent.charges?.data?.[0]) {
+      // Try getting the charge from expanded charges list
+      let chargeId = paymentIntent.charges?.data?.[0]?.id;
+
+      // Fallback to latest_charge if charges.data is empty
+      if (!chargeId && paymentIntent.latest_charge) {
+        chargeId = paymentIntent.latest_charge;
+      }
+
+      // If still no charge ID, throw error
+      if (!chargeId) {
         throw new ApiError(400, "No charge found for this payment intent");
       }
 
-      const charge = paymentIntent.charges.data[0];
+      // Optionally retrieve the full charge object (if needed for logging)
+      const charge = await this.stripe.charges.retrieve(chargeId);
+
       const refundData = {
         charge: charge.id,
         reason,
       };
 
       if (amount) {
-        refundData.amount = Math.round(amount * 100);
+        refundData.amount = Math.round(amount * 100); // Convert to cents
       }
 
       const refund = await this.stripe.refunds.create(refundData);
 
+      // Look up original transaction
       const originalTransaction = await Transaction.findOne({
         reference: `STRIPE_${paymentIntentId}`,
       });
@@ -350,7 +364,7 @@ class StripeService {
         const refundTransaction = new Transaction({
           fromAccount: originalTransaction.toAccount,
           amount: refund.amount / 100,
-          type: "refund",
+          type: "payment",
           description: `Refund for ${originalTransaction.description}`,
           status: "completed",
           reference: `REFUND_${refund.id}`,
@@ -364,6 +378,7 @@ class StripeService {
 
         await refundTransaction.save();
 
+        // Deduct refund amount from user's account balance
         const account = await Account.findById(originalTransaction.toAccount);
         if (account) {
           account.balance -= refund.amount / 100;
