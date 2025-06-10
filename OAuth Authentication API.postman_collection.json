@@ -49,9 +49,9 @@
 							"raw": "{\n    \"name\": \"Regular User\",\n    \"email\": \"user@example.com\",\n    \"password\": \"Password123\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/auth/register",
+							"raw": "{{base_url}}/auth/register",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"auth",
@@ -96,9 +96,9 @@
 							"raw": "{\n    \"name\": \"Test Borrower\",\n    \"email\": \"borrower@example.com\",\n    \"password\": \"Password123\",\n    \"role\": \"borrower\",\n    \"monthlyIncome\": 5000,\n    \"employmentStatus\": \"employed\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/auth/register",
+							"raw": "{{base_url}}/auth/register",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"auth",
@@ -143,9 +143,9 @@
 							"raw": "{\n    \"name\": \"Test Lender\",\n    \"email\": \"lender@example.com\",\n    \"password\": \"Password123\",\n    \"role\": \"lender\",\n    \"lendingCapacity\": 100000,\n    \"interestRatePersonal\": 5.5\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/auth/register",
+							"raw": "{{base_url}}/auth/register",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"auth",
@@ -190,9 +190,9 @@
 							"raw": "{\n    \"name\": \"Admin User\",\n    \"email\": \"admin@example.com\",\n    \"password\": \"AdminPassword123\",\n    \"role\": \"admin\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/auth/register",
+							"raw": "{{base_url}}/auth/register",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"auth",
@@ -237,9 +237,9 @@
 							"raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"Password123\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/auth/login",
+							"raw": "{{base_url}}/auth/login",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"auth",
@@ -284,9 +284,9 @@
 							"raw": "{\n    \"email\": \"borrower@example.com\",\n    \"password\": \"Password123\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/auth/login",
+							"raw": "{{base_url}}/auth/login",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"auth",
@@ -331,9 +331,9 @@
 							"raw": "{\n    \"email\": \"lender@example.com\",\n    \"password\": \"Password123\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/auth/login",
+							"raw": "{{base_url}}/auth/login",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"auth",
@@ -377,9 +377,9 @@
 							"raw": "{\n    \"email\": \"borrower@example.com\",\n    \"password\": \"Password123\",\n    \"role\": \"borrower\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/auth/role/login",
+							"raw": "{{base_url}}/auth/role/login",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"auth",
@@ -416,9 +416,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/auth/refresh-token",
+							"raw": "{{base_url}}/auth/refresh-token",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"auth",
@@ -458,9 +458,9 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/auth/logout",
+							"raw": "{{base_url}}/auth/logout",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"auth",
@@ -507,9 +507,9 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/auth/profile",
+							"raw": "{{base_url}}/auth/profile",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"auth",
@@ -557,9 +557,9 @@
 							"raw": "{\n    \"role\": \"borrower\",\n    \"monthlyIncome\": 4500,\n    \"employmentStatus\": \"employed\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/auth/role",
+							"raw": "{{base_url}}/auth/role",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"auth",
@@ -594,9 +594,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/accounts",
+							"raw": "{{base_url}}/accounts",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"accounts"
@@ -632,9 +632,9 @@
 							]
 						},
 						"url": {
-							"raw": "{{baseUrl}}/accounts",
+							"raw": "{{base_url}}/accounts",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"accounts"
@@ -661,9 +661,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/accounts/682ee9d5974ca7d44612c5f7",
+							"raw": "{{base_url}}/accounts/682ee9d5974ca7d44612c5f7",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"accounts",
@@ -691,9 +691,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/accounts/682ee9d5974ca7d44612c5f7",
+							"raw": "{{base_url}}/accounts/682ee9d5974ca7d44612c5f7",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"accounts",
@@ -726,9 +726,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/transaction/deposit",
+							"raw": "{{base_url}}/transaction/deposit",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"transaction",
@@ -756,9 +756,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/transaction/withdraw",
+							"raw": "{{base_url}}/transaction/withdraw",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"transaction",
@@ -786,9 +786,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/transaction/transfer",
+							"raw": "{{base_url}}/transaction/transfer",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"transaction",
@@ -825,9 +825,9 @@
 							]
 						},
 						"url": {
-							"raw": "{{baseUrl}}/transaction/balance/",
+							"raw": "{{base_url}}/transaction/balance/",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"transaction",
@@ -892,9 +892,9 @@
 							]
 						},
 						"url": {
-							"raw": "{{baseUrl}}/transaction/getTransactionHistroy/SAV296431661",
+							"raw": "{{base_url}}/transaction/getTransactionHistroy/SAV296431661",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"transaction",
@@ -964,9 +964,9 @@
 							]
 						},
 						"url": {
-							"raw": "{{baseUrl}}/transaction/getTransactionSummaryForUser",
+							"raw": "{{base_url}}/transaction/getTransactionSummaryForUser",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"transaction",
@@ -994,9 +994,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/transaction/payment-intent",
+							"raw": "{{base_url}}/transaction/payment-intent",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"transaction",
@@ -1024,9 +1024,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/transaction/stripe/payment-intent",
+							"raw": "{{base_url}}/transaction/stripe/payment-intent",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"transaction",
@@ -1071,9 +1071,9 @@
 							"raw": "{\n  \"title\": \"Personal Loan Offer\",\n  \"description\": \"Competitive personal loan with flexible terms\",\n  \"minAmount\": 10000,\n  \"maxAmount\": 500000,\n  \"interestRate\": 12.5,\n  \"termOptions\": [12, 24, 36, 48, 60],\n  \"loanPurpose\": [\"personal\", \"education\", \"vehicle\"],\n  \"eligibilityCriteria\": {\n    \"minCreditScore\": 650,\n    \"maxDebtToIncomeRatio\": 0.4,\n    \"minMonthlyIncome\": 30000,\n    \"employmentStatus\": [\"employed\", \"self-employed\"],\n    \"minEmploymentDuration\": 12\n  },\n  \"totalOffered\": 2000000,\n  \"autoApproval\": false,\n  \"expiryDate\": \"2024-12-31T23:59:59.000Z\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/loan/offers",
+							"raw": "{{base_url}}/loan/offers",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"loan",
@@ -1103,9 +1103,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/loan/offers?page=1&limit=10&minAmount=10000&maxAmount=500000&maxInterestRate=15&purpose=personal&term=24",
+							"raw": "{{base_url}}/loan/offers?page=1&limit=10&minAmount=10000&maxAmount=500000&maxInterestRate=15&purpose=personal&term=24",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"loan",
@@ -1165,9 +1165,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/loan/offers/{{offerId}}",
+							"raw": "{{base_url}}/loan/offers/{{offerId}}",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"loan",
@@ -1213,9 +1213,9 @@
 							"raw": "{\n  \"title\": \"Updated Personal Loan Offer\",\n  \"description\": \"Updated competitive personal loan with flexible terms\",\n  \"interestRate\": 11.5,\n  \"status\": \"active\",\n  \"autoApproval\": true\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/loan/offers/{{offerId}}",
+							"raw": "{{base_url}}/loan/offers/{{offerId}}",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"loan",
@@ -1252,9 +1252,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/loan/my-offers?page=1&limit=10&status=active",
+							"raw": "{{base_url}}/loan/my-offers?page=1&limit=10&status=active",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"loan",
@@ -1312,9 +1312,9 @@
 							"raw": "{\n  \"requestedAmount\": 100000,\n  \"selectedTerm\": 24,\n  \"purpose\": \"personal\",\n  \"purposeDescription\": \"Home renovation and personal expenses\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/loan/offers/{{offerId}}/apply",
+							"raw": "{{base_url}}/loan/offers/{{offerId}}/apply",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"loan",
@@ -1361,9 +1361,9 @@
 							"raw": "{\n  \"decision\": \"approved\",\n  \"comments\": \"Application meets all criteria. Approved for processing.\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/loan/applications/{{applicationId}}/lender-review",
+							"raw": "{{base_url}}/loan/applications/{{applicationId}}/lender-review",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"loan",
@@ -1410,9 +1410,9 @@
 							"raw": "{\n  \"decision\": \"approved\",\n  \"comments\": \"Final approval granted. Loan ready for disbursement.\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/loan/applications/{{applicationId}}/admin-approval",
+							"raw": "{{base_url}}/loan/applications/{{applicationId}}/admin-approval",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"loan",
@@ -1450,9 +1450,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/loan/applications?page=1&limit=10&status=pending",
+							"raw": "{{base_url}}/loan/applications?page=1&limit=10&status=pending",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"loan",
@@ -1496,9 +1496,9 @@
 							"raw": "{\n  \"applicationId\": \"APP123456789\",\n  \"borrowerAccountId\": \"ACC987654321\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/disburse",
+							"raw": "{{base_url}}/disburse",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"disburse"
@@ -1522,9 +1522,9 @@
 							"raw": "{\n  \"paymentAmount\": 2500,\n  \"accountId\": \"ACC987654321\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/loans/{{loanId}}/payment",
+							"raw": "{{base_url}}/loans/{{loanId}}/payment",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"loans",
@@ -1541,9 +1541,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/loans/{{loanId}}",
+							"raw": "{{base_url}}/loans/{{loanId}}",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"loans",
@@ -1559,9 +1559,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/my-loans?type=borrowed&status=active&page=1&limit=10",
+							"raw": "{{base_url}}/my-loans?type=borrowed&status=active&page=1&limit=10",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"my-loans"
@@ -1596,9 +1596,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/my-loans?type=lent&status=active&page=1&limit=10",
+							"raw": "{{base_url}}/my-loans?type=lent&status=active&page=1&limit=10",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"my-loans"
@@ -1631,9 +1631,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/loans/{{loanId}}/schedule",
+							"raw": "{{base_url}}/loans/{{loanId}}/schedule",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"loans",
@@ -1650,9 +1650,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/overdue?page=1&limit=10",
+							"raw": "{{base_url}}/overdue?page=1&limit=10",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"overdue"
@@ -1677,9 +1677,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/analytics",
+							"raw": "{{base_url}}/analytics",
 							"host": [
-								"{{baseUrl}}"
+								"{{base_url}}"
 							],
 							"path": [
 								"analytics"
@@ -1750,8 +1750,8 @@
               "raw": "{\n  \"accountNumber\": \"{{accountNumber}}\",\n  \"amount\": 500.00,\n  \"description\": \"Cash deposit at branch\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/transaction/deposit",
-              "host": ["{{baseUrl}}"],
+              "raw": "{{base_url}}/transaction/deposit",
+              "host": ["{{base_url}}"],
               "path": ["transaction", "deposit"]
             }
           }
@@ -1781,8 +1781,8 @@
               "raw": "{\n  \"accountNumber\": \"{{accountNumber}}\",\n  \"amount\": 100.00,\n  \"description\": \"ATM withdrawal\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/transaction/withdraw",
-              "host": ["{{baseUrl}}"],
+              "raw": "{{base_url}}/transaction/withdraw",
+              "host": ["{{base_url}}"],
               "path": ["transaction", "withdraw"]
             }
           }
@@ -1812,8 +1812,8 @@
               "raw": "{\n  \"fromAccountNumber\": \"{{accountNumber}}\",\n  \"toAccountNumber\": \"ACC987654321\",\n  \"amount\": 250.00,\n  \"description\": \"Transfer to savings account\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/transaction/transfer",
-              "host": ["{{baseUrl}}"],
+              "raw": "{{base_url}}/transaction/transfer",
+              "host": ["{{base_url}}"],
               "path": ["transaction", "transfer"]
             }
           }
@@ -1848,8 +1848,8 @@
               "raw": "{\n  \"accountNumber\": \"{{accountNumber}}\",\n  \"amount\": 500.00,\n  \"description\": \"Stripe deposit\",\n  \"paymentMethodId\": \"pm_1234567890\",\n  \"currency\": \"usd\",\n  \"customerData\": {\n    \"email\": \"user@example.com\",\n    \"name\": \"John Doe\",\n    \"phone\": \"+1234567890\"\n  }\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/transaction/stripe/deposit",
-              "host": ["{{baseUrl}}"],
+              "raw": "{{base_url}}/transaction/stripe/deposit",
+              "host": ["{{base_url}}"],
               "path": ["transaction", "stripe", "deposit"]
             }
           }
@@ -1879,8 +1879,8 @@
               "raw": "{\n  \"accountNumber\": \"{{accountNumber}}\",\n  \"amount\": 300.00,\n  \"description\": \"Payment intent for deposit\",\n  \"paymentMethodId\": \"pm_1234567890\",\n  \"currency\": \"usd\",\n  \"action\": \"create\",\n  \"customerData\": {\n    \"email\": \"user@example.com\",\n    \"name\": \"John Doe\",\n    \"phone\": \"+1234567890\"\n  }\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/transaction/stripe/create-payment-intent",
-              "host": ["{{baseUrl}}"],
+              "raw": "{{base_url}}/transaction/stripe/create-payment-intent",
+              "host": ["{{base_url}}"],
               "path": ["transaction", "stripe", "create-payment-intent"]
             }
           }
@@ -1910,8 +1910,8 @@
               "raw": "{\n  \"accountNumber\": \"{{accountNumber}}\",\n  \"amount\": 300.00,\n  \"description\": \"Process payment\",\n  \"paymentMethodId\": \"pm_1234567890\",\n  \"currency\": \"usd\",\n  \"action\": \"process\",\n  \"customerData\": {\n    \"email\": \"user@example.com\",\n    \"name\": \"John Doe\",\n    \"phone\": \"+1234567890\"\n  }\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/transaction/stripe/payment-intent",
-              "host": ["{{baseUrl}}"],
+              "raw": "{{base_url}}/transaction/stripe/payment-intent",
+              "host": ["{{base_url}}"],
               "path": ["transaction", "stripe", "payment-intent"]
             }
           }
@@ -1941,8 +1941,8 @@
               "raw": "{\n  \"paymentIntentId\": \"pi_1234567890\",\n  \"accountNumber\": \"{{accountNumber}}\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/transaction/stripe/confirm-payment",
-              "host": ["{{baseUrl}}"],
+              "raw": "{{base_url}}/transaction/stripe/confirm-payment",
+              "host": ["{{base_url}}"],
               "path": ["transaction", "stripe", "confirm-payment"]
             }
           }
@@ -1972,8 +1972,8 @@
               "raw": "{\n  \"fromAccountNumber\": \"{{accountNumber}}\",\n  \"toAccountNumber\": \"ACC987654321\",\n  \"amount\": 200.00,\n  \"description\": \"Stripe transfer\",\n  \"paymentMethodId\": \"pm_1234567890\",\n  \"currency\": \"usd\",\n  \"transferType\": \"instant\",\n  \"customerData\": {\n    \"email\": \"user@example.com\",\n    \"name\": \"John Doe\",\n    \"phone\": \"+1234567890\"\n  }\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/transaction/stripe/transfer",
-              "host": ["{{baseUrl}}"],
+              "raw": "{{base_url}}/transaction/stripe/transfer",
+              "host": ["{{base_url}}"],
               "path": ["transaction", "stripe", "transfer"]
             }
           }
@@ -2003,8 +2003,8 @@
               "raw": "{\n  \"paymentIntentId\": \"pi_1234567890\",\n  \"amount\": 50.00,\n  \"reason\": \"requested_by_customer\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/transaction/stripe/refund",
-              "host": ["{{baseUrl}}"],
+              "raw": "{{base_url}}/transaction/stripe/refund",
+              "host": ["{{base_url}}"],
               "path": ["transaction", "stripe", "refund"]
             }
           }
@@ -2039,8 +2039,8 @@
               "raw": "{\n  \"cardData\": {\n    \"number\": \"4242424242424242\",\n    \"exp_month\": 12,\n    \"exp_year\": 2027,\n    \"cvc\": \"123\",\n    \"name\": \"John Doe\",\n    \"email\": \"user@example.com\",\n    \"phone\": \"+1234567890\"\n  },\n  \"customerId\": \"{{customerId}}\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/transaction/stripe/payment-method",
-              "host": ["{{baseUrl}}"],
+              "raw": "{{base_url}}/transaction/stripe/payment-method",
+              "host": ["{{base_url}}"],
               "path": ["transaction", "stripe", "payment-method"]
             }
           }
@@ -2061,8 +2061,8 @@
               ]
             },
             "url": {
-              "raw": "{{baseUrl}}/transaction/stripe/payment-methods/{{customerId}}",
-              "host": ["{{baseUrl}}"],
+              "raw": "{{base_url}}/transaction/stripe/payment-methods/{{customerId}}",
+              "host": ["{{base_url}}"],
               "path": ["transaction", "stripe", "payment-methods", "{{customerId}}"]
             }
           }
@@ -2088,8 +2088,8 @@
               ]
             },
             "url": {
-              "raw": "{{baseUrl}}/transaction/history/{{accountNumber}}?type=deposit&status=completed&page=1&limit=10",
-              "host": ["{{baseUrl}}"],
+              "raw": "{{base_url}}/transaction/history/{{accountNumber}}?type=deposit&status=completed&page=1&limit=10",
+              "host": ["{{base_url}}"],
               "path": ["transaction", "history", "{{accountNumber}}"],
               "query": [
                 {
@@ -2148,8 +2148,8 @@
               ]
             },
             "url": {
-              "raw": "{{baseUrl}}/transaction/stripe/history?accountNumber={{accountNumber}}&page=1&limit=10",
-              "host": ["{{baseUrl}}"],
+              "raw": "{{base_url}}/transaction/stripe/history?accountNumber={{accountNumber}}&page=1&limit=10",
+              "host": ["{{base_url}}"],
               "path": ["transaction", "stripe", "history"],
               "query": [
                 {
@@ -2184,8 +2184,8 @@
               ]
             },
             "url": {
-              "raw": "{{baseUrl}}/transaction/getUserAccount?accountNumber={{accountNumber}}&limit=5",
-              "host": ["{{baseUrl}}"],
+              "raw": "{{base_url}}/transaction/getUserAccount?accountNumber={{accountNumber}}&limit=5",
+              "host": ["{{base_url}}"],
               "path": ["transaction", "getUserAccount"],
               "query": [
                 {
@@ -2216,8 +2216,8 @@
               ]
             },
             "url": {
-              "raw": "{{baseUrl}}/transaction/summary?period=month&accountId=65f1234567890abcdef12345",
-              "host": ["{{baseUrl}}"],
+              "raw": "{{base_url}}/transaction/summary?period=month&accountId=65f1234567890abcdef12345",
+              "host": ["{{base_url}}"],
               "path": ["transaction", "summary"],
               "query": [
                 {
@@ -2245,8 +2245,8 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/transaction/",
-              "host": ["{{baseUrl}}"],
+              "raw": "{{base_url}}/transaction/",
+              "host": ["{{base_url}}"],
               "path": ["transaction", ""]
             }
           }
