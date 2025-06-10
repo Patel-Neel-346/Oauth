@@ -512,12 +512,13 @@ export const StripeTransferFunds = asyncHandler(async (req, res, next) => {
   }
 });
 
-// Get Account Balance
 export const GetAccountBalance = asyncHandler(async (req, res, next) => {
-  const { accountNumber } = req.params || req.query;
+  const { accountNumber } = req.body;
   const { limit = 10 } = req.params || req.query;
   const userId = req.user;
-
+  // console.log(req.body.accountNumber);
+  // console.log("THis is Calling");
+  // console.log(accountNumber);
   try {
     const account = await Account.findOne({
       accountNumber: accountNumber,
@@ -544,7 +545,8 @@ export const GetAccountBalance = asyncHandler(async (req, res, next) => {
 
 // Get Transaction History
 export const GetTransactionHistory = asyncHandler(async (req, res, next) => {
-  const { accountNumber } = req.body || req.params || req.query;
+  const { accountNumber } = req.params;
+
   const {
     type,
     status,

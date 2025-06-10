@@ -47,18 +47,23 @@ router.post(
   "/offers",
   Authenticated,
   hasRole([ROLE_TYPES.LENDER]),
-  createLoanOfferValidation,
+  // createLoanOfferValidation,
   CreateLoanOffer
 );
 
 // Get all active loan offers (All authenticated users)
-router.get("/offers", Authenticated, getLoanOffersValidation, GetAllLoanOffers);
+router.get(
+  "/offers",
+  Authenticated,
+  // getLoanOffersValidation,
+  GetAllLoanOffers
+);
 
 // Get specific loan offer details (All authenticated users)
 router.get(
   "/offers/:offerId",
   Authenticated,
-  getLoanOfferDetailValidation,
+  // getLoanOfferDetailValidation,
   GetLoanOfferDetail
 );
 
@@ -67,7 +72,7 @@ router.put(
   "/offers/:offerId",
   Authenticated,
   hasRole([ROLE_TYPES.LENDER]),
-  updateLoanOfferValidation,
+  // updateLoanOfferValidation,
   UpdateLoanOffers
 );
 
@@ -76,7 +81,7 @@ router.get(
   "/my-offers",
   Authenticated,
   hasRole([ROLE_TYPES.LENDER]),
-  getLenderOffersValidation,
+  // getLenderOffersValidation,
   GetLenderOffers
 );
 
@@ -87,7 +92,7 @@ router.post(
   "/offers/:offerId/apply",
   Authenticated,
   hasRole([ROLE_TYPES.BORROWER]),
-  applyForLoanValidation,
+  // applyForLoanValidation,
   ApplyForLoanController
 );
 
@@ -96,7 +101,7 @@ router.put(
   "/applications/:applicationId/lender-review",
   Authenticated,
   hasRole([ROLE_TYPES.LENDER]),
-  lenderReviewValidation,
+  // lenderReviewValidation,
   LenderReviewApplicationController
 );
 
@@ -105,7 +110,7 @@ router.put(
   "/applications/:applicationId/admin-approval",
   Authenticated,
   hasRole([ROLE_TYPES.ADMIN]),
-  adminApprovalValidation,
+  // adminApprovalValidation,
   AdminFinalApprovalController
 );
 
@@ -119,7 +124,7 @@ router.get(
     ROLE_TYPES.ADMIN,
     ROLE_TYPES.MANAGER,
   ]),
-  getApplicationsValidation,
+  // getApplicationsValidation,
   GetApplicationsController
 );
 
@@ -130,7 +135,7 @@ router.post(
   "/disburse",
   Authenticated,
   hasRole([ROLE_TYPES.ADMIN]),
-  disburseLoanValidation,
+  // disburseLoanValidation,
   disburseLoan
 );
 
@@ -139,7 +144,7 @@ router.post(
   "/loans/:loanId/payment",
   Authenticated,
   hasRole([ROLE_TYPES.BORROWER]),
-  makeLoanPaymentValidation,
+  // makeLoanPaymentValidation,
   makeLoanPayment
 );
 
@@ -148,7 +153,7 @@ router.get(
   "/loans/:loanId",
   Authenticated,
   hasRole([ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER, ROLE_TYPES.ADMIN]),
-  getLoanDetailsValidation,
+  // getLoanDetailsValidation,
   getLoanDetails
 );
 
@@ -162,7 +167,7 @@ router.get(
     ROLE_TYPES.ADMIN,
     ROLE_TYPES.MANAGER,
   ]),
-  getUserLoansValidation,
+  // getUserLoansValidation,
   getUserLoans
 );
 
@@ -171,7 +176,7 @@ router.get(
   "/loans/:loanId/schedule",
   Authenticated,
   hasRole([ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER, ROLE_TYPES.ADMIN]),
-  getLoanPaymentScheduleValidation,
+  // getLoanPaymentScheduleValidation,
   getLoanPaymentSchedule
 );
 
@@ -180,7 +185,7 @@ router.get(
   "/overdue",
   Authenticated,
   hasRole([ROLE_TYPES.ADMIN, ROLE_TYPES.MANAGER]),
-  getOverdueLoansValidation,
+  // getOverdueLoansValidation,
   getOverdueLoans
 );
 

@@ -187,7 +187,7 @@ TransactionRouter.get(
 );
 
 // Get account balance and filtered transactions
-TransactionRouter.get(
+TransactionRouter.post(
   "/getUserAccount",
   Authenticated,
   hasRole([

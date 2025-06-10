@@ -9,6 +9,8 @@ class P2PLoanService {
   // Disburse loan after approval
   static async disburseLoan(applicationId, borrowerAccountId) {
     try {
+      console.log(borrowerAccountId);
+
       const application = await LoanApplication.findOne({
         applicationId,
         status: "approved",
@@ -17,26 +19,26 @@ class P2PLoanService {
         .populate("borrowerId")
         .populate("lenderId");
 
-      // console.log(application);
+      console.log(application);
 
       if (!application) {
         throw new Error("Approved application not found");
       }
-
+      console.log(application.borrowerId._id);
       // Verify accounts
       const borrowerAccount = await Account.findOne({
         accountNumber: borrowerAccountId,
-        userId: application.borrowerId._id,
+        // userId: application.borrowerId._id,
         status: "active",
       });
-      // console.log(borrowerAccount);
+      console.log(borrowerAccount);
 
       const lenderAccount = await Account.findOne({
         userId: application.lenderId._id,
         status: "active",
       });
 
-      // console.log(lenderAccount);
+      console.log(lenderAccount);
 
       if (!borrowerAccount || !lenderAccount) {
         throw new Error("Valid accounts not found");
@@ -155,7 +157,7 @@ class P2PLoanService {
       // Verify borrower account
       const borrowerAccount = await Account.findOne({
         accountNumber: accountId,
-        userId: userId,
+        // userId: userId,
         status: "active",
       });
       // console.log(borrowerAccount);
@@ -252,7 +254,7 @@ class P2PLoanService {
         loanStatus: loan.status,
       };
     } catch (error) {
-      // console.log(error);
+      console.log(error);
       throw new ApiError(500, "Internel Server Error At Disburse Loan Service");
     }
   }

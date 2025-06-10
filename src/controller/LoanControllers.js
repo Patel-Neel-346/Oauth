@@ -307,7 +307,7 @@ export const makeLoanPayment = asyncHandler(async (req, res, next) => {
   try {
     const { loanId } = req.params;
     const { paymentAmount, accountId } = req.body;
-
+    console.log("WORKING!");
     if (!loanId) {
       return next(new ApiError(400, "Loan ID is required"));
     }
