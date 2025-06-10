@@ -19,12 +19,12 @@ import {
   GetStripeTransactionHistory,
 
   // Existing Stripe methods
-  HandleStripePayment,
-  HandleStripeWebhook,
-  CreateStripeCustomer,
+  // HandleStripePayment,
+  // HandleStripeWebhook,
+  // CreateStripeCustomer,
   AddPaymentMethod,
   GetPaymentMethods,
-  RefundPayment,
+  // RefundPayment,
   StripeTransferFunds,
 } from "../controller/TransactionControllerV2.js";
 
@@ -154,19 +154,6 @@ TransactionRouter.get(
   GetStripeTransactionHistory
 );
 
-// ========== STRIPE CUSTOMER & PAYMENT METHOD ROUTES ==========
-
-// Stripe Webhook Handler (no auth needed for webhooks)
-TransactionRouter.post("/stripe/webhook", HandleStripeWebhook);
-
-// Create/Get Stripe Customer
-TransactionRouter.post(
-  "/stripe/customer",
-  Authenticated,
-  hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
-  CreateStripeCustomer
-);
-
 // Add Payment Method
 TransactionRouter.post(
   "/stripe/payment-method",
@@ -181,14 +168,6 @@ TransactionRouter.get(
   Authenticated,
   hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
   GetPaymentMethods
-);
-
-// Process Refund (alternative route)
-TransactionRouter.post(
-  "/stripe/process-refund",
-  Authenticated,
-  hasRole([ROLE_TYPES.USER, ROLE_TYPES.BORROWER, ROLE_TYPES.LENDER]),
-  RefundPayment
 );
 
 // ========== GENERAL TRANSACTION ROUTES ==========

@@ -249,34 +249,6 @@ class StripeService {
     }
   }
 
-  async handleWebhook(payload, signature) {
-    try {
-      const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-      if (!endpointSecret) {
-        throw new Error("STRIPE_WEBHOOK_SECRET is not configured");
-      }
-
-      const event = this.stripe.webhooks.constructEvent(
-        payload,
-        signature,
-        endpointSecret
-      );
-
-      switch (event.type) {
-        case "payment_intent.succeeded":
-          await this.handlePaymentSucceeded(event.data.object);
-          break;
-        case "payment_intent.payment_failed":
-          await this.handlePaymentFailed(event.data.object);
-          break;
-      }
-
-      return { success: true, message: "Webhook processed successfully" };
-    } catch (error) {
-      throw new ApiError(400, `Webhook error: ${error.message}`);
-    }
-  }
-
   async handlePaymentSucceeded(paymentIntent) {
     try {
       const transaction = await Transaction.findOne({

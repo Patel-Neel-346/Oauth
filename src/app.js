@@ -13,7 +13,7 @@ import ClientRouter from "./routes/clientRoutes.js";
 import AccountRoute from "./routes/AccountRoutes.js";
 import TransactionRouter from "./routes/TransactionRoutes.js";
 import router from "./routes/LoanRoute.js";
-import StripeRouter from "./routes/Stripe_Router.js";
+// import StripeRouter from "./routes/Stripe_Router.js";
 import { fileURLToPath } from "url";
 import path from "path";
 
@@ -75,7 +75,7 @@ app.get("/", (req, res) => {
 });
 
 // Route definitions
-app.use("/stripe", StripeRouter);
+// app.use("/stripe", StripeRouter);
 app.use("/auth", AuthRouter);
 app.use("/api/v1/user", AuthRouter);
 app.use("/data", DataRouter);

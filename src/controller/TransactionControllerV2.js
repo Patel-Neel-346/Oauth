@@ -329,42 +329,6 @@ export const HandleStripePayment = asyncHandler(async (req, res, next) => {
   }
 });
 
-// Stripe Webhook Handler
-export const HandleStripeWebhook = asyncHandler(async (req, res, next) => {
-  const payload = req.body;
-  const signature = req.headers["stripe-signature"];
-
-  try {
-    const result = await stripeService.handleWebhook(payload, signature);
-    return res.status(200).json({ received: true });
-  } catch (error) {
-    console.log("Webhook Error:", error);
-    return next(new ApiError(400, `Webhook Error: ${error.message}`));
-  }
-});
-
-// Create/Get Stripe Customer
-export const CreateStripeCustomer = asyncHandler(async (req, res, next) => {
-  const { email, name, phone } = req.body;
-  const userId = req.user;
-
-  try {
-    const customer = await stripeService.createOrGetCustomer(
-      { email, name, phone },
-      userId
-    );
-
-    return res
-      .status(200)
-      .json(
-        new ApiRes(200, customer, "Customer created/retrieved successfully")
-      );
-  } catch (error) {
-    console.log("Customer Creation Error:", error);
-    return next(new ApiError(500, `Customer Error: ${error.message}`));
-  }
-});
-
 // Add Payment Method
 export const AddPaymentMethod = asyncHandler(async (req, res, next) => {
   const { cardData, customerId } = req.body;
@@ -397,26 +361,6 @@ export const GetPaymentMethods = asyncHandler(async (req, res, next) => {
   } catch (error) {
     console.log("Get Payment Methods Error:", error);
     return next(new ApiError(500, `Payment Methods Error: ${error.message}`));
-  }
-});
-
-// Refund Payment
-export const RefundPayment = asyncHandler(async (req, res, next) => {
-  const { paymentIntentId, amount, reason } = req.body;
-
-  try {
-    const result = await stripeService.refundPayment(
-      paymentIntentId,
-      amount,
-      reason
-    );
-
-    return res
-      .status(200)
-      .json(new ApiRes(200, result, "Refund processed successfully"));
-  } catch (error) {
-    console.log("Refund Error:", error);
-    return next(new ApiError(500, `Refund Error: ${error.message}`));
   }
 });
 
