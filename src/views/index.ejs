@@ -1005,7 +1005,7 @@
 
         setTimeout(() => {
           showAlert(
-            `Cash deposit of $${amount.toFixed(
+            `Cash deposit of ₹${amount.toFixed(
               2
             )} to account ${accountNumber} was successful!`,
             "success"
@@ -1072,7 +1072,7 @@
 
         setTimeout(() => {
           showAlert(
-            `Transfer of $${amount.toFixed(
+            `Transfer of ₹${amount.toFixed(
               2
             )} from ${fromAccount} to ${toAccount} was successful!`,
             "success"
@@ -1139,7 +1139,7 @@
               email: email,
               phone: phone,
             },
-            currency: "usd",
+            currency: "INR",
             action: "create",
           };
 
@@ -1186,7 +1186,7 @@
             console.log("Confirm Payment Response:", confirm_payment);
 
             showAlert(
-              `Stripe deposit of $${amount.toFixed(
+              `Stripe deposit of ₹${amount.toFixed(
                 2
               )} to account ${accountNumber} was successful!`,
               "success"
@@ -1280,7 +1280,7 @@
               email: email,
               phone: phone,
             },
-            currency: "usd",
+            currency: "INR",
             action: "create",
             // transferType:transferType
           };
@@ -1299,7 +1299,7 @@
           }
 
           showAlert(
-            `Stripe transfer of $${amount.toFixed(
+            `Stripe transfer of ₹${amount.toFixed(
               2
             )} from ${fromAccount} to ${toAccount} was successful!`,
             "success"
