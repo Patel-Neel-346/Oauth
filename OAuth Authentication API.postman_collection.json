@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "cba81e58-1c58-44e6-810e-351de9e5df50",
-		"name": "Loan Management System API Copy 3",
+		"_postman_id": "018e4855-152d-4452-9e3a-976defe8d1ba",
+		"name": "Loan Management System API Copy 6",
 		"description": "API test collection for the Loan Management System with role-based authentication",
-		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "37897270"
 	},
 	"item": [
@@ -48,7 +48,16 @@
 							"mode": "raw",
 							"raw": "{\n    \"name\": \"Regular User\",\n    \"email\": \"user@example.com\",\n    \"password\": \"Password123\"\n}"
 						},
-						"url": "{{baseUrl}}/auth/register",
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
 						"description": "Register a new user with default USER role"
 					},
 					"response": []
@@ -86,7 +95,16 @@
 							"mode": "raw",
 							"raw": "{\n    \"name\": \"Test Borrower\",\n    \"email\": \"borrower@example.com\",\n    \"password\": \"Password123\",\n    \"role\": \"borrower\",\n    \"monthlyIncome\": 5000,\n    \"employmentStatus\": \"employed\"\n}"
 						},
-						"url": "{{baseUrl}}/auth/register",
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
 						"description": "Register a new borrower with borrower profile"
 					},
 					"response": []
@@ -124,7 +142,16 @@
 							"mode": "raw",
 							"raw": "{\n    \"name\": \"Test Lender\",\n    \"email\": \"lender@example.com\",\n    \"password\": \"Password123\",\n    \"role\": \"lender\",\n    \"lendingCapacity\": 100000,\n    \"interestRatePersonal\": 5.5\n}"
 						},
-						"url": "{{baseUrl}}/auth/register",
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
 						"description": "Register a new lender with lender profile"
 					},
 					"response": []
@@ -162,7 +189,16 @@
 							"mode": "raw",
 							"raw": "{\n    \"name\": \"Admin User\",\n    \"email\": \"admin@example.com\",\n    \"password\": \"AdminPassword123\",\n    \"role\": \"admin\"\n}"
 						},
-						"url": "{{baseUrl}}/auth/register",
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
 						"description": "Register a new admin user"
 					},
 					"response": []
@@ -200,7 +236,16 @@
 							"mode": "raw",
 							"raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"Password123\"\n}"
 						},
-						"url": "{{baseUrl}}/auth/login",
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
 						"description": "Login as regular user"
 					},
 					"response": []
@@ -238,7 +283,16 @@
 							"mode": "raw",
 							"raw": "{\n    \"email\": \"borrower@example.com\",\n    \"password\": \"Password123\"\n}"
 						},
-						"url": "{{baseUrl}}/auth/login",
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
 						"description": "Login as borrower"
 					},
 					"response": []
@@ -276,7 +330,16 @@
 							"mode": "raw",
 							"raw": "{\n    \"email\": \"lender@example.com\",\n    \"password\": \"Password123\"\n}"
 						},
-						"url": "{{baseUrl}}/auth/login",
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
 						"description": "Login as lender"
 					},
 					"response": []
@@ -313,7 +376,17 @@
 							"mode": "raw",
 							"raw": "{\n    \"email\": \"borrower@example.com\",\n    \"password\": \"Password123\",\n    \"role\": \"borrower\"\n}"
 						},
-						"url": "{{baseUrl}}/auth/role/login",
+						"url": {
+							"raw": "{{baseUrl}}/auth/role/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"role",
+								"login"
+							]
+						},
 						"description": "Login with a specific role"
 					},
 					"response": []
@@ -342,7 +415,16 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": "{{baseUrl}}/auth/refresh-token",
+						"url": {
+							"raw": "{{baseUrl}}/auth/refresh-token",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"refresh-token"
+							]
+						},
 						"description": "Refresh the authentication token using the refresh token in cookies"
 					},
 					"response": []
@@ -375,7 +457,16 @@
 								"value": "Bearer {{authToken}}"
 							}
 						],
-						"url": "{{baseUrl}}/auth/logout",
+						"url": {
+							"raw": "{{baseUrl}}/auth/logout",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						},
 						"description": "Logout and invalidate the current token"
 					},
 					"response": []
@@ -415,7 +506,16 @@
 								"value": "Bearer {{authToken}}"
 							}
 						],
-						"url": "{{baseUrl}}/auth/profile",
+						"url": {
+							"raw": "{{baseUrl}}/auth/profile",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"profile"
+							]
+						},
 						"description": "Get the current user's profile and roles"
 					},
 					"response": []
@@ -456,7 +556,16 @@
 							"mode": "raw",
 							"raw": "{\n    \"role\": \"borrower\",\n    \"monthlyIncome\": 4500,\n    \"employmentStatus\": \"employed\"\n}"
 						},
-						"url": "{{baseUrl}}/auth/role",
+						"url": {
+							"raw": "{{baseUrl}}/auth/role",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"role"
+							]
+						},
 						"description": "Add a borrower role to an existing user"
 					},
 					"response": []
@@ -484,7 +593,15 @@
 								}
 							}
 						},
-						"url": "{{baseUrl}}/accounts"
+						"url": {
+							"raw": "{{baseUrl}}/accounts",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"accounts"
+							]
+						}
 					},
 					"response": []
 				},
@@ -514,7 +631,15 @@
 								}
 							]
 						},
-						"url": "{{baseUrl}}/accounts"
+						"url": {
+							"raw": "{{baseUrl}}/accounts",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"accounts"
+							]
+						}
 					},
 					"response": []
 				},
@@ -535,7 +660,16 @@
 								}
 							}
 						},
-						"url": "{{baseUrl}}/accounts/682ee9d5974ca7d44612c5f7"
+						"url": {
+							"raw": "{{baseUrl}}/accounts/682ee9d5974ca7d44612c5f7",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"accounts",
+								"682ee9d5974ca7d44612c5f7"
+							]
+						}
 					},
 					"response": []
 				},
@@ -556,7 +690,16 @@
 								}
 							}
 						},
-						"url": "{{baseUrl}}/accounts/682ee9d5974ca7d44612c5f7"
+						"url": {
+							"raw": "{{baseUrl}}/accounts/682ee9d5974ca7d44612c5f7",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"accounts",
+								"682ee9d5974ca7d44612c5f7"
+							]
+						}
 					},
 					"response": []
 				}
@@ -582,7 +725,16 @@
 								}
 							}
 						},
-						"url": "{{baseUrl}}/transaction/deposit"
+						"url": {
+							"raw": "{{baseUrl}}/transaction/deposit",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"transaction",
+								"deposit"
+							]
+						}
 					},
 					"response": []
 				},
@@ -603,7 +755,16 @@
 								}
 							}
 						},
-						"url": "{{baseUrl}}/transaction/withdraw"
+						"url": {
+							"raw": "{{baseUrl}}/transaction/withdraw",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"transaction",
+								"withdraw"
+							]
+						}
 					},
 					"response": []
 				},
@@ -624,7 +785,16 @@
 								}
 							}
 						},
-						"url": "{{baseUrl}}/transaction/transfer"
+						"url": {
+							"raw": "{{baseUrl}}/transaction/transfer",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"transaction",
+								"transfer"
+							]
+						}
 					},
 					"response": []
 				},
@@ -654,7 +824,17 @@
 								}
 							]
 						},
-						"url": "{{baseUrl}}/transaction/balance/"
+						"url": {
+							"raw": "{{baseUrl}}/transaction/balance/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"transaction",
+								"balance",
+								""
+							]
+						}
 					},
 					"response": []
 				},
@@ -711,7 +891,17 @@
 								}
 							]
 						},
-						"url": "{{baseUrl}}/transaction/getTransactionHistroy/SAV296431661"
+						"url": {
+							"raw": "{{baseUrl}}/transaction/getTransactionHistroy/SAV296431661",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"transaction",
+								"getTransactionHistroy",
+								"SAV296431661"
+							]
+						}
 					},
 					"response": []
 				},
@@ -773,7 +963,77 @@
 								}
 							]
 						},
-						"url": "{{baseUrl}}/transaction/getTransactionSummaryForUser"
+						"url": {
+							"raw": "{{baseUrl}}/transaction/getTransactionSummaryForUser",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"transaction",
+								"getTransactionSummaryForUser"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DepositUsingStripe",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"accountNumber\":\"{{account_number }}\",\r\n    \"amount\":1000,\r\n    \"description\":\"Deposit\",\r\n    \"paymentMethodId\":\"pm_1RVrOSCQkunRa8JYj2oB41jp\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/transaction/payment-intent",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"transaction",
+								"payment-intent"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DepositUsingStripeConfirm",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"accountNumber\":\"{{account_number}}\",\r\n    \"amount\":1000,\r\n    \"description\":\"Deposit\",\r\n    \"paymentMethodId\":\"pm_1RVrOSCQkunRa8JYj2oB41jp\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/transaction/stripe/payment-intent",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"transaction",
+								"stripe",
+								"payment-intent"
+							]
+						}
 					},
 					"response": []
 				}
@@ -787,13 +1047,17 @@
 					"request": {
 						"auth": {
 							"type": "bearer",
-							"bearer": {
-								"0": {
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
+							"bearer": [
+								{
+									"key": "0",
+									"value": {
+										"key": "token",
+										"value": "{{authToken}}",
+										"type": "string"
+									},
+									"type": "any"
 								}
-							}
+							]
 						},
 						"method": "POST",
 						"header": [
@@ -806,7 +1070,16 @@
 							"mode": "raw",
 							"raw": "{\n  \"title\": \"Personal Loan Offer\",\n  \"description\": \"Competitive personal loan with flexible terms\",\n  \"minAmount\": 10000,\n  \"maxAmount\": 500000,\n  \"interestRate\": 12.5,\n  \"termOptions\": [12, 24, 36, 48, 60],\n  \"loanPurpose\": [\"personal\", \"education\", \"vehicle\"],\n  \"eligibilityCriteria\": {\n    \"minCreditScore\": 650,\n    \"maxDebtToIncomeRatio\": 0.4,\n    \"minMonthlyIncome\": 30000,\n    \"employmentStatus\": [\"employed\", \"self-employed\"],\n    \"minEmploymentDuration\": 12\n  },\n  \"totalOffered\": 2000000,\n  \"autoApproval\": false,\n  \"expiryDate\": \"2024-12-31T23:59:59.000Z\"\n}"
 						},
-						"url": "{{baseUrl}}/loan/offers"
+						"url": {
+							"raw": "{{baseUrl}}/loan/offers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"loan",
+								"offers"
+							]
+						}
 					},
 					"response": []
 				},
@@ -815,13 +1088,17 @@
 					"request": {
 						"auth": {
 							"type": "bearer",
-							"bearer": {
-								"0": {
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
+							"bearer": [
+								{
+									"key": "0",
+									"value": {
+										"key": "token",
+										"value": "{{authToken}}",
+										"type": "string"
+									},
+									"type": "any"
 								}
-							}
+							]
 						},
 						"method": "GET",
 						"header": [],
@@ -873,13 +1150,17 @@
 					"request": {
 						"auth": {
 							"type": "bearer",
-							"bearer": {
-								"0": {
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
+							"bearer": [
+								{
+									"key": "0",
+									"value": {
+										"key": "token",
+										"value": "{{authToken}}",
+										"type": "string"
+									},
+									"type": "any"
 								}
-							}
+							]
 						},
 						"method": "GET",
 						"header": [],
@@ -908,13 +1189,17 @@
 					"request": {
 						"auth": {
 							"type": "bearer",
-							"bearer": {
-								"0": {
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
+							"bearer": [
+								{
+									"key": "0",
+									"value": {
+										"key": "token",
+										"value": "{{authToken}}",
+										"type": "string"
+									},
+									"type": "any"
 								}
-							}
+							]
 						},
 						"method": "PUT",
 						"header": [
@@ -952,13 +1237,17 @@
 					"request": {
 						"auth": {
 							"type": "bearer",
-							"bearer": {
-								"0": {
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
+							"bearer": [
+								{
+									"key": "0",
+									"value": {
+										"key": "token",
+										"value": "{{authToken}}",
+										"type": "string"
+									},
+									"type": "any"
 								}
-							}
+							]
 						},
 						"method": "GET",
 						"header": [],
@@ -999,13 +1288,17 @@
 					"request": {
 						"auth": {
 							"type": "bearer",
-							"bearer": {
-								"0": {
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
+							"bearer": [
+								{
+									"key": "0",
+									"value": {
+										"key": "token",
+										"value": "{{authToken}}",
+										"type": "string"
+									},
+									"type": "any"
 								}
-							}
+							]
 						},
 						"method": "POST",
 						"header": [
@@ -1044,13 +1337,17 @@
 					"request": {
 						"auth": {
 							"type": "bearer",
-							"bearer": {
-								"0": {
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
+							"bearer": [
+								{
+									"key": "0",
+									"value": {
+										"key": "token",
+										"value": "{{authToken}}",
+										"type": "string"
+									},
+									"type": "any"
 								}
-							}
+							]
 						},
 						"method": "PUT",
 						"header": [
@@ -1089,13 +1386,17 @@
 					"request": {
 						"auth": {
 							"type": "bearer",
-							"bearer": {
-								"0": {
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
+							"bearer": [
+								{
+									"key": "0",
+									"value": {
+										"key": "token",
+										"value": "{{authToken}}",
+										"type": "string"
+									},
+									"type": "any"
 								}
-							}
+							]
 						},
 						"method": "PUT",
 						"header": [
@@ -1134,13 +1435,17 @@
 					"request": {
 						"auth": {
 							"type": "bearer",
-							"bearer": {
-								"0": {
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
+							"bearer": [
+								{
+									"key": "0",
+									"value": {
+										"key": "token",
+										"value": "{{authToken}}",
+										"type": "string"
+									},
+									"type": "any"
 								}
-							}
+							]
 						},
 						"method": "GET",
 						"header": [],
@@ -1190,7 +1495,15 @@
 							"mode": "raw",
 							"raw": "{\n  \"applicationId\": \"APP123456789\",\n  \"borrowerAccountId\": \"ACC987654321\"\n}"
 						},
-						"url": "{{baseUrl}}/disburse"
+						"url": {
+							"raw": "{{baseUrl}}/disburse",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"disburse"
+							]
+						}
 					},
 					"response": []
 				},
@@ -1208,7 +1521,17 @@
 							"mode": "raw",
 							"raw": "{\n  \"paymentAmount\": 2500,\n  \"accountId\": \"ACC987654321\"\n}"
 						},
-						"url": "{{baseUrl}}/loans/{{loanId}}/payment"
+						"url": {
+							"raw": "{{baseUrl}}/loans/{{loanId}}/payment",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"loans",
+								"{{loanId}}",
+								"payment"
+							]
+						}
 					},
 					"response": []
 				},
@@ -1217,7 +1540,16 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": "{{baseUrl}}/loans/{{loanId}}"
+						"url": {
+							"raw": "{{baseUrl}}/loans/{{loanId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"loans",
+								"{{loanId}}"
+							]
+						}
 					},
 					"response": []
 				},
@@ -1298,7 +1630,17 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": "{{baseUrl}}/loans/{{loanId}}/schedule"
+						"url": {
+							"raw": "{{baseUrl}}/loans/{{loanId}}/schedule",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"loans",
+								"{{loanId}}",
+								"schedule"
+							]
+						}
 					},
 					"response": []
 				},
@@ -1334,17 +1676,57 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": "{{baseUrl}}/analytics"
+						"url": {
+							"raw": "{{baseUrl}}/analytics",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"analytics"
+							]
+						}
 					},
 					"response": []
 				}
 			]
 		},
-		 {
-      "name": "Payment Methods",
+		{
+			"name": "Refunds",
+			"item": [
+				{
+					"name": "Refund Payment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"paymentIntentId\": \"{{payment_intent_id}}\",\n  \"amount\": 50.00,\n  \"reason\": \"requested_by_customer\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/Stripe/refund",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"Stripe",
+								"refund"
+							]
+						},
+						"description": "Process a refund for a payment. Amount is optional (full refund if not provided)"
+					},
+					"response": []
+				}
+			]
+		}, {
+      "name": "Basic Transactions",
       "item": [
         {
-          "name": "Create Payment Method",
+          "name": "Deposit Funds (Traditional)",
           "request": {
             "method": "POST",
             "header": [
@@ -1353,221 +1735,371 @@
                 "value": "application/json"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"number\": \"4242424242424242\",\n  \"exp_month\": 12,\n  \"exp_year\": 2025,\n  \"cvc\": \"123\",\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"phone\": \"+1234567890\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/Stripe/payment-methods",
-              "host": ["{{base_url}}"],
-              "path": ["Stripe", "payment-methods"]
-            },
-            "description": "Create a new payment method (credit card) for the authenticated user"
-          },
-          "response": []
-        },
-        {
-          "name": "Get User Payment Methods",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/Stripe/payment-methods",
-              "host": ["{{base_url}}"],
-              "path": ["Stripe", "payment-methods"]
-            },
-            "description": "Retrieve all payment methods for the authenticated user"
-          },
-          "response": []
-        },
-        {
-          "name": "Delete Payment Method",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/Stripe/payment-methods/{{payment_method_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["Stripe", "payment-methods", "{{payment_method_id}}"]
-            },
-            "description": "Delete a specific payment method by ID"
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Payment Processing",
-      "item": [
-        {
-          "name": "Create Payment Intent",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"accountNumber\": \"{{account_number}}\",\n  \"amount\": 100.50,\n  \"currency\": \"usd\",\n  \"description\": \"Test payment to savings account\",\n  \"paymentMethodId\": \"{{payment_method_id}}\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/Stripe/create-payment-intent",
-              "host": ["{{base_url}}"],
-              "path": ["Stripe", "create-payment-intent"]
-            },
-            "description": "Create a payment intent for a specific account"
-          },
-          "response": []
-        },
-        {
-          "name": "Process Payment",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"accountNumber\": \"{{account_number}}\",\n  \"amount\": 250.75,\n  \"currency\": \"usd\",\n  \"description\": \"Direct payment to checking account\",\n  \"paymentMethodId\": \"{{payment_method_id}}\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/Stripe/process-payment",
-              "host": ["{{base_url}}"],
-              "path": ["Stripe", "process-payment"]
-            },
-            "description": "Process a payment directly to an account"
-          },
-          "response": []
-        },
-        {
-          "name": "Get Payment Details",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/Stripe/payment/{{payment_intent_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["Stripe", "payment", "{{payment_intent_id}}"]
-            },
-            "description": "Retrieve details of a specific payment by payment intent ID"
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Refunds",
-      "item": [
-        {
-          "name": "Refund Payment",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"paymentIntentId\": \"{{payment_intent_id}}\",\n  \"amount\": 50.00,\n  \"reason\": \"requested_by_customer\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/Stripe/refund",
-              "host": ["{{base_url}}"],
-              "path": ["Stripe", "refund"]
-            },
-            "description": "Process a refund for a payment. Amount is optional (full refund if not provided)"
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Transaction History",
-      "item": [
-        {
-          "name": "Get Stripe Payment History",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/Stripe/history?page=1&limit=10",
-              "host": ["{{base_url}}"],
-              "path": ["Stripe", "history"],
-              "query": [
+            "auth": {
+              "type": "bearer",
+              "bearer": [
                 {
-                  "key": "page",
-                  "value": "1",
-                  "description": "Page number for pagination"
-                },
-                {
-                  "key": "limit",
-                  "value": "10",
-                  "description": "Number of records per page"
-                },
-                {
-                  "key": "status",
-                  "value": "completed",
-                  "description": "Filter by transaction status",
-                  "disabled": true
-                },
-                {
-                  "key": "accountNumber",
-                  "value": "{{account_number}}",
-                  "description": "Filter by specific account number",
-                  "disabled": true
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
                 }
               ]
             },
-            "description": "Retrieve paginated Stripe payment history for the authenticated user"
-          },
-          "response": []
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"{{accountNumber}}\",\n  \"amount\": 500.00,\n  \"description\": \"Cash deposit at branch\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/transaction/deposit",
+              "host": ["{{baseUrl}}"],
+              "path": ["transaction", "deposit"]
+            }
+          }
         },
         {
-          "name": "Get Payment History - Filtered by Status",
+          "name": "Withdraw Funds",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"{{accountNumber}}\",\n  \"amount\": 100.00,\n  \"description\": \"ATM withdrawal\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/transaction/withdraw",
+              "host": ["{{baseUrl}}"],
+              "path": ["transaction", "withdraw"]
+            }
+          }
+        },
+        {
+          "name": "Transfer Funds",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromAccountNumber\": \"{{accountNumber}}\",\n  \"toAccountNumber\": \"ACC987654321\",\n  \"amount\": 250.00,\n  \"description\": \"Transfer to savings account\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/transaction/transfer",
+              "host": ["{{baseUrl}}"],
+              "path": ["transaction", "transfer"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stripe Transactions",
+      "item": [
+        {
+          "name": "Stripe Deposit Funds",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"{{accountNumber}}\",\n  \"amount\": 500.00,\n  \"description\": \"Stripe deposit\",\n  \"paymentMethodId\": \"pm_1234567890\",\n  \"currency\": \"usd\",\n  \"customerData\": {\n    \"email\": \"user@example.com\",\n    \"name\": \"John Doe\",\n    \"phone\": \"+1234567890\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/transaction/stripe/deposit",
+              "host": ["{{baseUrl}}"],
+              "path": ["transaction", "stripe", "deposit"]
+            }
+          }
+        },
+        {
+          "name": "Create Stripe Payment Intent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"{{accountNumber}}\",\n  \"amount\": 300.00,\n  \"description\": \"Payment intent for deposit\",\n  \"paymentMethodId\": \"pm_1234567890\",\n  \"currency\": \"usd\",\n  \"action\": \"create\",\n  \"customerData\": {\n    \"email\": \"user@example.com\",\n    \"name\": \"John Doe\",\n    \"phone\": \"+1234567890\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/transaction/stripe/create-payment-intent",
+              "host": ["{{baseUrl}}"],
+              "path": ["transaction", "stripe", "create-payment-intent"]
+            }
+          }
+        },
+        {
+          "name": "Process Stripe Payment Intent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"{{accountNumber}}\",\n  \"amount\": 300.00,\n  \"description\": \"Process payment\",\n  \"paymentMethodId\": \"pm_1234567890\",\n  \"currency\": \"usd\",\n  \"action\": \"process\",\n  \"customerData\": {\n    \"email\": \"user@example.com\",\n    \"name\": \"John Doe\",\n    \"phone\": \"+1234567890\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/transaction/stripe/payment-intent",
+              "host": ["{{baseUrl}}"],
+              "path": ["transaction", "stripe", "payment-intent"]
+            }
+          }
+        },
+        {
+          "name": "Confirm Stripe Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentIntentId\": \"pi_1234567890\",\n  \"accountNumber\": \"{{accountNumber}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/transaction/stripe/confirm-payment",
+              "host": ["{{baseUrl}}"],
+              "path": ["transaction", "stripe", "confirm-payment"]
+            }
+          }
+        },
+        {
+          "name": "Stripe Transfer Funds",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromAccountNumber\": \"{{accountNumber}}\",\n  \"toAccountNumber\": \"ACC987654321\",\n  \"amount\": 200.00,\n  \"description\": \"Stripe transfer\",\n  \"paymentMethodId\": \"pm_1234567890\",\n  \"currency\": \"usd\",\n  \"transferType\": \"instant\",\n  \"customerData\": {\n    \"email\": \"user@example.com\",\n    \"name\": \"John Doe\",\n    \"phone\": \"+1234567890\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/transaction/stripe/transfer",
+              "host": ["{{baseUrl}}"],
+              "path": ["transaction", "stripe", "transfer"]
+            }
+          }
+        },
+        {
+          "name": "Stripe Refund",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentIntentId\": \"pi_1234567890\",\n  \"amount\": 50.00,\n  \"reason\": \"requested_by_customer\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/transaction/stripe/refund",
+              "host": ["{{baseUrl}}"],
+              "path": ["transaction", "stripe", "refund"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payment Methods",
+      "item": [
+        {
+          "name": "Add Payment Method",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardData\": {\n    \"number\": \"4242424242424242\",\n    \"exp_month\": 12,\n    \"exp_year\": 2027,\n    \"cvc\": \"123\",\n    \"name\": \"John Doe\",\n    \"email\": \"user@example.com\",\n    \"phone\": \"+1234567890\"\n  },\n  \"customerId\": \"{{customerId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/transaction/stripe/payment-method",
+              "host": ["{{baseUrl}}"],
+              "path": ["transaction", "stripe", "payment-method"]
+            }
+          }
+        },
+        {
+          "name": "Get Payment Methods",
           "request": {
             "method": "GET",
             "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
             "url": {
-              "raw": "{{base_url}}/Stripe/history?page=1&limit=5&status=completed",
-              "host": ["{{base_url}}"],
-              "path": ["Stripe", "history"],
+              "raw": "{{baseUrl}}/transaction/stripe/payment-methods/{{customerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["transaction", "stripe", "payment-methods", "{{customerId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transaction History & Reports",
+      "item": [
+        {
+          "name": "Get Transaction History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/transaction/history/{{accountNumber}}?type=deposit&status=completed&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["transaction", "history", "{{accountNumber}}"],
               "query": [
                 {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "5"
+                  "key": "type",
+                  "value": "deposit"
                 },
                 {
                   "key": "status",
                   "value": "completed"
-                }
-              ]
-            },
-            "description": "Get payment history filtered by transaction status"
-          },
-          "response": []
-        },
-        {
-          "name": "Get Payment History - Filtered by Account",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/Stripe/history?page=1&limit=10&accountNumber={{account_number}}",
-              "host": ["{{base_url}}"],
-              "path": ["Stripe", "history"],
-              "query": [
+                },
                 {
                   "key": "page",
                   "value": "1"
@@ -1577,121 +2109,147 @@
                   "value": "10"
                 },
                 {
-                  "key": "accountNumber",
-                  "value": "{{account_number}}"
+                  "key": "dateFrom",
+                  "value": "2025-01-01",
+                  "disabled": true
+                },
+                {
+                  "key": "dateTo",
+                  "value": "2025-12-31",
+                  "disabled": true
+                },
+                {
+                  "key": "amountMin",
+                  "value": "10",
+                  "disabled": true
+                },
+                {
+                  "key": "amountMax",
+                  "value": "1000",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Stripe Transaction History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
                 }
               ]
             },
-            "description": "Get payment history for a specific account"
-          },
-          "response": []
+            "url": {
+              "raw": "{{baseUrl}}/transaction/stripe/history?accountNumber={{accountNumber}}&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["transaction", "stripe", "history"],
+              "query": [
+                {
+                  "key": "accountNumber",
+                  "value": "{{accountNumber}}"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Account Balance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/transaction/getUserAccount?accountNumber={{accountNumber}}&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["transaction", "getUserAccount"],
+              "query": [
+                {
+                  "key": "accountNumber",
+                  "value": "{{accountNumber}}"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Transaction Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/transaction/summary?period=month&accountId=65f1234567890abcdef12345",
+              "host": ["{{baseUrl}}"],
+              "path": ["transaction", "summary"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "month",
+                  "description": "Options: week, month, quarter, year"
+                },
+                {
+                  "key": "accountId",
+                  "value": "65f1234567890abcdef12345",
+                  "description": "Optional: specific account ID"
+                }
+              ]
+            }
+          }
         }
       ]
     },
     {
-      "name": "Webhooks",
+      "name": "EJS Views",
       "item": [
         {
-          "name": "Stripe Webhook Handler",
+          "name": "Transaction Page (EJS)",
           "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "stripe-signature",
-                "value": "t=1234567890,v1=signature_here",
-                "description": "Stripe webhook signature"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"id\": \"evt_test_webhook\",\n  \"object\": \"event\",\n  \"api_version\": \"2020-08-27\",\n  \"created\": 1234567890,\n  \"data\": {\n    \"object\": {\n      \"id\": \"pi_test_123456\",\n      \"object\": \"payment_intent\",\n      \"amount\": 10000,\n      \"currency\": \"usd\",\n      \"status\": \"succeeded\"\n    }\n  },\n  \"livemode\": false,\n  \"pending_webhooks\": 1,\n  \"request\": {\n    \"id\": \"req_test_123456\",\n    \"idempotency_key\": null\n  },\n  \"type\": \"payment_intent.succeeded\"\n}"
-            },
+            "method": "GET",
+            "header": [],
             "url": {
-              "raw": "{{base_url}}/Stripe/webhook",
-              "host": ["{{base_url}}"],
-              "path": ["Stripe", "webhook"]
-            },
-            "description": "Webhook endpoint for Stripe events (payment_intent.succeeded, payment_intent.payment_failed, etc.)"
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Test Card Examples",
-      "item": [
-        {
-          "name": "Create Payment Method - Visa Success",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"number\": \"4242424242424242\",\n  \"exp_month\": 12,\n  \"exp_year\": 2025,\n  \"cvc\": \"123\",\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/Stripe/payment-methods",
-              "host": ["{{base_url}}"],
-              "path": ["Stripe", "payment-methods"]
-            },
-            "description": "Test with Visa card that will succeed"
-          },
-          "response": []
-        },
-        {
-          "name": "Create Payment Method - Card Declined",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"number\": \"4000000000000002\",\n  \"exp_month\": 12,\n  \"exp_year\": 2025,\n  \"cvc\": \"123\",\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/Stripe/payment-methods",
-              "host": ["{{base_url}}"],
-              "path": ["Stripe", "payment-methods"]
-            },
-            "description": "Test with card that will be declined"
-          },
-          "response": []
-        },
-        {
-          "name": "Create Payment Method - Insufficient Funds",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"number\": \"4000000000009995\",\n  \"exp_month\": 12,\n  \"exp_year\": 2025,\n  \"cvc\": \"123\",\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/Stripe/payment-methods",
-              "host": ["{{base_url}}"],
-              "path": ["Stripe", "payment-methods"]
-            },
-            "description": "Test with card that will have insufficient funds"
-          },
-          "response": []
+              "raw": "{{baseUrl}}/transaction/",
+              "host": ["{{baseUrl}}"],
+              "path": ["transaction", ""]
+            }
+          }
         }
       ]
     }
